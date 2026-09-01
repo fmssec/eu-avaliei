@@ -63,6 +63,13 @@ export const previewParamsSchema = z.object({
   s: z.string().max(400).default(''),
   art: z.string().max(600).optional(),
   safe: z.string().optional(),
+  /**
+   * Largura de exibição. Só para a <img> da tela: o card é composto igual e
+   * apenas rasterizado menor, então o preview continua fiel — mas não baixa
+   * 1,8 MB para aparecer a 158px. O arquivo que vai ser compartilhado NUNCA
+   * usa este parâmetro.
+   */
+  w: z.coerce.number().int().min(120).max(2000).optional(),
 });
 
 export interface PreviewParams {
@@ -79,6 +86,7 @@ export interface PreviewParams {
   stats: { label: string; value: number }[];
   artworkUrl: string | null;
   showSafeArea: boolean;
+  displayWidth?: number;
 }
 
 export function parsePreviewParams(search: URLSearchParams): PreviewParams {
@@ -98,6 +106,7 @@ export function parsePreviewParams(search: URLSearchParams): PreviewParams {
     // Mesma regra do card: o preview também renderiza o que vier em `art`.
     artworkUrl: p.art && isAcceptableArtworkUrl(p.art) ? p.art : null,
     showSafeArea: p.safe === '1',
+    displayWidth: p.w,
   };
 }
 
@@ -115,6 +124,8 @@ export interface PreviewSource {
   stats: { label: string; value: number }[];
   artworkUrl?: string | null;
   showSafeArea?: boolean;
+  /** Só para exibição. Omita para gerar o arquivo em tamanho real. */
+  displayWidth?: number;
 }
 
 export function buildPreviewQuery(src: PreviewSource): string {
@@ -133,6 +144,7 @@ export function buildPreviewQuery(src: PreviewSource): string {
   if (src.year) q.set('y', String(src.year));
   if (src.artworkUrl) q.set('art', src.artworkUrl);
   if (src.showSafeArea) q.set('safe', '1');
+  if (src.displayWidth) q.set('w', String(src.displayWidth));
   return q.toString();
 }
 

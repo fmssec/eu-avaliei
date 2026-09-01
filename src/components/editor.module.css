@@ -570,7 +570,9 @@
 .demoBody {
   display: flex;
   gap: 16px;
-  align-items: stretch;
+  /* `stretch` esticava o card até a altura da lista ao lado, deformando a
+     capa. A proporção da imagem manda; a lista é que se alinha a ela. */
+  align-items: flex-start;
 }
 
 .demoCard {
@@ -586,6 +588,7 @@
 .demoSteps {
   display: flex;
   flex-direction: column;
+  align-self: stretch;
   justify-content: center;
   gap: 14px;
   margin: 0;

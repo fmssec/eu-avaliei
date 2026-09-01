@@ -66,6 +66,8 @@ export function StepBusca({
         author: DEMO_AUTHOR,
         stats: DEMO_STATS,
         artworkUrl: DEMO_MEDIA.artworkUrl,
+        // Ele aparece a 158px; 420 cobre telas de alta densidade com folga.
+        displayWidth: 420,
       }),
     [],
   );

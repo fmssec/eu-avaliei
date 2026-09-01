@@ -32,6 +32,8 @@ export interface RenderRequest {
   /** URL do nosso proxy de arte, ou null. */
   artworkUrl?: string | null;
   showSafeArea?: boolean;
+  /** Rasteriza nesta largura em vez da do formato. Só para exibição. */
+  maxWidth?: number;
 }
 
 export interface RenderResult {
@@ -145,25 +147,38 @@ export async function renderCard(req: RenderRequest): Promise<RenderResult> {
   const spec = FORMATS[req.format];
   const svg = await toSvg(req, spec);
 
-  // Upscale vetorial: a composição acontece no tamanho base e o resvg leva
-  // até a largura final. Por isso `base` tem a proporção exata do destino.
+  // A composição é vetorial, então rasterizar menor é só pedir outra largura:
+  // o preview continua sendo o mesmo card, apenas mais leve de baixar.
+  const width = Math.min(req.maxWidth ?? spec.width, spec.width);
+  const height = Math.round((width / spec.width) * spec.height);
+
   const png = Buffer.from(
     new Resvg(svg, {
-      fitTo: { mode: 'width', value: spec.width },
+      fitTo: { mode: 'width', value: width },
       font: { loadSystemFonts: false },
     })
       .render()
       .asPng(),
   );
 
-  const { body, mime, ext } = await encodeToBudget(png, spec);
+  // Render de exibição (largura reduzida) sai sempre em JPEG: um PNG de foto a
+  // 640px passa de 800 KB, e nada disso vai para o arquivo compartilhado — o
+  // que importa aqui é aparecer rápido na tela.
+  const isDisplayRender = width < spec.width;
+  const { body, mime, ext } = isDisplayRender
+    ? {
+        body: await sharp(png).jpeg({ quality: 82, mozjpeg: true }).toBuffer(),
+        mime: 'image/jpeg',
+        ext: 'jpg',
+      }
+    : await encodeToBudget(png, spec);
 
   return {
     body,
     mime,
     ext,
     bytes: body.byteLength,
-    width: spec.width,
-    height: spec.height,
+    width,
+    height,
   };
 }

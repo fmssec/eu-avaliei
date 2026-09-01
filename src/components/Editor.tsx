@@ -45,6 +45,18 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'share', label: '4 ENVIAR' },
 ];
 
+/**
+ * Largura em que os previews da tela são rasterizados.
+ *
+ * O card em tamanho real passa de 1 MB, e a cada ajuste de slider o navegador
+ * baixaria isso de novo para mostrar uma imagem de 200 a 400px. A composição é
+ * a mesma — só a rasterização é menor —, então o preview continua fiel.
+ *
+ * O arquivo que vai ser compartilhado NUNCA usa esta largura: ele vem de
+ * `shareQuery`, sem o parâmetro.
+ */
+const DISPLAY_WIDTH = 640;
+
 /** Estatísticas nascem na nota geral: ninguém precisa preencher seis sliders. */
 function seedStats(media: Media, overall: number): EditableStat[] {
   return DEFAULT_AXES[media.category].slice(0, MAX_STATS).map((label) => ({ label, value: overall }));
@@ -162,20 +174,38 @@ export function Editor() {
   /** Debounce de 250ms: o preview acompanha o slider sem render por pixel. */
   const settled = useDebounced(previewSource, 250);
 
-  const previewQuery = useMemo(
+  /** Sem `displayWidth`: é este que vira o arquivo compartilhado. */
+  const shareQuery = useMemo(
     () => buildPreviewQuery({ ...settled, format: shareFormat, showSafeArea }),
     [settled, shareFormat, showSafeArea],
   );
 
+  const shareDisplayQuery = useMemo(
+    () =>
+      buildPreviewQuery({
+        ...settled,
+        format: shareFormat,
+        showSafeArea,
+        displayWidth: DISPLAY_WIDTH,
+      }),
+    [settled, shareFormat, showSafeArea],
+  );
+
   const editorPreviewQuery = useMemo(
-    () => buildPreviewQuery({ ...settled, format: 'story', showSafeArea }),
+    () =>
+      buildPreviewQuery({
+        ...settled,
+        format: 'story',
+        showSafeArea,
+        displayWidth: DISPLAY_WIDTH,
+      }),
     [settled, showSafeArea],
   );
 
   // Só pré-gera quando o usuário já está perto de compartilhar.
   const prepping = step === 'estilo' || step === 'share';
   const { prepared, preparing } = useCardBlob(
-    prepping ? previewQuery : '',
+    prepping ? shareQuery : '',
     shareFormat,
     media ? slugify(media.title) : 'card',
   );
@@ -265,9 +295,13 @@ export function Editor() {
    */
   const paneQuery = media
     ? step === 'share'
-      ? previewQuery
+      ? shareDisplayQuery
       : editorPreviewQuery
-    : buildPreviewQuery({ ...DEMO_PREVIEW_SOURCE, format: 'story' });
+    : buildPreviewQuery({
+        ...DEMO_PREVIEW_SOURCE,
+        format: 'story',
+        displayWidth: DISPLAY_WIDTH,
+      });
 
   const paneFormat = media && step === 'share' ? shareFormat : 'story';
   const paneSpec = FORMATS[paneFormat];
@@ -355,7 +389,7 @@ export function Editor() {
       {step === 'share' && media ? (
         <StepShare
           media={media}
-          previewQuery={previewQuery}
+          previewQuery={shareDisplayQuery}
           format={shareFormat}
           onFormat={setShareFormat}
           prepared={prepared}

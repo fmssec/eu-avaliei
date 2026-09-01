@@ -34,6 +34,7 @@ export async function GET(request: Request) {
     stats: params.stats,
     artworkUrl: params.artworkUrl,
     showSafeArea: params.showSafeArea,
+    maxWidth: params.displayWidth,
   });
 
   return new NextResponse(new Uint8Array(result.body), {
