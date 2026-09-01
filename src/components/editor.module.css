@@ -1,0 +1,821 @@
+/*
+ * Editor, mobile-first. O alvo é o número que define o produto: da busca ao
+ * card compartilhável em menos de 30 segundos (spec §7). Cada elemento aqui
+ * responde a esse alvo — nenhuma tela intermediária, nenhuma confirmação.
+ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* O nome é o caminho de volta para a home. */
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.brand:hover .wordmark {
+  color: var(--gold);
+}
+
+.themeToggle {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  border: 1px solid var(--line-3);
+  padding: 8px 10px;
+  flex: none;
+  min-width: 62px;
+  text-align: center;
+}
+
+.themeToggle:hover {
+  color: var(--ink);
+  border-color: var(--muted-3);
+}
+
+.wordmark {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.tagline {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--muted-2);
+}
+
+.stepLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--muted-3);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  padding: 16px 0 0;
+  min-height: 0;
+}
+
+.stepHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  padding: 4px 0;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+/* ---- Busca -------------------------------------------------------------- */
+
+.searchInput,
+.textInput {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line-3);
+  color: var(--ink);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+  padding: 14px 16px;
+  outline: none;
+}
+
+.textInput {
+  font-size: 18px;
+  padding: 11px 13px;
+}
+
+.searchInput:focus,
+.textInput:focus {
+  border-color: var(--ink);
+}
+
+.hint {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted-4);
+  line-height: 1.7;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+  width: 100%;
+}
+
+.result:hover,
+.result:focus-visible {
+  border-color: #4a4a50;
+  background: #141418;
+}
+
+.thumb {
+  width: 44px;
+  height: 64px;
+  flex: none;
+  border: 1px solid var(--line-2);
+  background: #141418;
+  object-fit: cover;
+}
+
+.resultBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.resultTitle {
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.resultMeta {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+}
+
+.chip {
+  font-family: var(--font-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  border: 1px solid var(--line-3);
+  padding: 3px 6px;
+  flex: none;
+}
+
+/* ---- Nota --------------------------------------------------------------- */
+
+.mediaTitle {
+  font-family: var(--font-display), sans-serif;
+  font-size: 24px;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+
+.overallRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+
+.overallValue {
+  font-family: var(--font-display), sans-serif;
+  font-size: 74px;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.overallSide {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 8px;
+}
+
+.rarityTag {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+}
+
+.segmented {
+  display: flex;
+  gap: 6px;
+}
+
+.segment {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 9px 4px;
+  border: 1px solid var(--line-3);
+  color: var(--muted-2);
+  background: transparent;
+}
+
+.segmentOn {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.statList {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  width: 68px;
+  flex: none;
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-weight: 700;
+  font-size: 17px;
+  width: 34px;
+  text-align: right;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.weight {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  color: var(--muted-3);
+  border: 1px solid var(--line-3);
+  padding: 3px 5px;
+  width: 44px;
+  text-align: center;
+  flex: none;
+  background: transparent;
+}
+
+/* ---- Preview e personalização ------------------------------------------ */
+
+.previewWrap {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.preview {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.previewTall {
+  width: 216px;
+  aspect-ratio: 9 / 16;
+}
+
+.previewSquare {
+  width: 288px;
+  aspect-ratio: 1 / 1;
+}
+
+.previewWide {
+  width: 320px;
+  aspect-ratio: 1200 / 630;
+}
+
+.fieldLabel {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--muted-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.frameRow {
+  display: flex;
+  gap: 8px;
+}
+
+.frameOption {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  padding: 11px;
+  border: 1px solid var(--line-3);
+  text-transform: uppercase;
+  color: var(--muted-2);
+  background: transparent;
+}
+
+.frameOptionOn {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.disclosure {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted-5);
+  text-align: left;
+  padding: 4px 0;
+}
+
+.disclosure:hover {
+  color: var(--ink-dim);
+}
+
+/* ---- Compartilhamento --------------------------------------------------- */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  padding: 9px 11px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--ok);
+}
+
+.dotPending {
+  background: var(--warn);
+}
+
+.primary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  color: var(--bg);
+  background: var(--ink);
+  padding: 17px;
+  letter-spacing: -0.01em;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gold);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+.footNote {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--muted-5);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.destinations {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.destination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 12px 13px;
+  width: 100%;
+  text-align: left;
+}
+
+.destination:hover:not(:disabled),
+.destination:focus-visible:not(:disabled) {
+  border-color: #4a4a50;
+}
+
+.destination:disabled {
+  opacity: 0.5;
+}
+
+.destinationLabel {
+  font-weight: 600;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.destinationVia {
+  font-family: var(--font-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--muted-3);
+  text-align: right;
+}
+
+.spacer {
+  margin-top: auto;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 10px 16px;
+  z-index: 20;
+  max-width: calc(100% - 40px);
+}
+
+.stepNav {
+  display: flex;
+  gap: 6px;
+  padding-top: 16px;
+}
+
+.stepNavItem {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 8px 3px;
+  border: 1px solid var(--line-2);
+  color: var(--muted-2);
+  background: transparent;
+}
+
+.stepNavItemOn {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.stepNavItem:disabled {
+  opacity: 0.35;
+}
+
+.empty {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted-4);
+  padding: 8px 0;
+}
+
+/* ---- Exemplo da tela inicial -------------------------------------------
+ * Com o campo de busca vazio, o lugar mais caro da tela mostra o produto
+ * funcionando em vez de espaço morto. O card é renderizado pelo /api/preview
+ * — o mesmo caminho de um card real —, então o exemplo nunca diverge do que
+ * o usuário vai receber.
+ */
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.demoHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.demoTag {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+.demoBody {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.demoCard {
+  display: block;
+  width: 158px;
+  height: auto;
+  aspect-ratio: 9 / 16;
+  flex: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.demoSteps {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.demoStep {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.demoStepName {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--muted-3);
+}
+
+.demoStepWhat {
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+/* ---- Arte própria ------------------------------------------------------- */
+
+.artRow {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.artThumb {
+  width: 64px;
+  height: 92px;
+  flex: none;
+  border: 1px solid var(--line-3);
+  background: #141418;
+  overflow: hidden;
+}
+
+.artThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.artThumbEmpty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(244, 241, 234, 0.06) 0 2px,
+    transparent 2px 8px
+  );
+}
+
+.artActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.artButton {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  border: 1px solid var(--line-3);
+  background: var(--surface);
+  padding: 9px 10px;
+  text-align: center;
+}
+
+.artButton:hover:not(:disabled) {
+  border-color: #4a4a50;
+  color: var(--ink);
+}
+
+.artButton:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+.artLinkRow {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.artLinkRow .textInput {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+}
+
+.artLinkRow .artButton {
+  flex: none;
+  padding: 0 14px;
+}
+
+/* ---- Layout ------------------------------------------------------------
+ * Mobile-first de verdade: no telefone é uma coluna só, e o preview vive
+ * dentro dos passos para não custar altura de tela.
+ *
+ * No desktop o app deixava metade da tela vazia. A partir de 960px o espaço
+ * vira uma segunda coluna com o card grande e fixo — que é o objeto do
+ * produto, e merece ser o maior elemento da página.
+ */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.previewPane {
+  display: none;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 0 0;
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--muted-4);
+}
+
+@media (min-width: 960px) {
+  .shell {
+    max-width: 1180px;
+    padding: 0 40px 32px;
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+    padding-top: 8px;
+  }
+
+  .previewPane {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    /* Acompanha a rolagem: mexer num eixo lá embaixo continua mostrando o card. */
+    top: 28px;
+  }
+
+  .previewLarge {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* O 9:16 numa coluna de 400px daria 711px de altura e empurraria o resto
+       para fora da tela. O card cabe na janela; a largura é que cede. */
+    max-height: calc(100dvh - 190px);
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .previewMeta {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-family: var(--font-mono), monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--muted-3);
+  }
+
+  /* O preview grande substitui os embutidos: mostrar os dois seria repetir
+     o mesmo card duas vezes na mesma tela. */
+  .previewWrap,
+  .demoCard {
+    display: none;
+  }
+
+  .step {
+    padding-top: 0;
+  }
+
+  /* Com mais largura, os controles respiram em duas colunas. */
+  .statList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 28px;
+  }
+
+  .destinations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .primary {
+    padding: 19px;
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .workspace {
+    grid-template-columns: minmax(340px, 440px) minmax(0, 1fr);
+    gap: 64px;
+  }
+}

@@ -1,0 +1,251 @@
+/*
+ * CSS da landing do card. Deliberadamente pequeno e externo: nada aqui pode
+ * virar <style> inline no <head>, que é onde o preview do WhatsApp quebra.
+ *
+ * O tema aqui segue só o sistema, sem botão e sem script. O editor tem um
+ * alternador porque lá o script inline que evita o flash é aceitável; nesta
+ * página ele entraria no <head> antes das tags og:, que é justamente o que
+ * não pode acontecer. Preview quebrado é fatal; flash de tema, não.
+ */
+
+@font-face {
+  font-family: 'Archivo Black Local';
+  src: url('/fonts/ArchivoBlack-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed Local';
+  src: url('/fonts/BarlowCondensed-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed Local';
+  src: url('/fonts/BarlowCondensed-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono Local';
+  src: url('/fonts/IBMPlexMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark light;
+
+  --bg: #08080a;
+  --surface: #16161b;
+  --ink: #f5f2eb;
+  --muted: #b0ada6;
+  --muted-3: #918e87;
+  --line: #2a2a30;
+  --line-3: #3d3d45;
+  --gold: #e8be5c;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f2eb;
+    --surface: #eae6dc;
+    --ink: #14141a;
+    --muted: #4e4e57;
+    --muted-3: #5c5c65;
+    --line: #d8d3c8;
+    --line-3: #b9b4a7;
+    --gold: #6e4e08;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Barlow Condensed Local', system-ui, sans-serif;
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 100dvh;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.wordmark {
+  font-family: 'Archivo Black Local', system-ui, sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--gold);
+}
+
+.meta,
+.note {
+  font-family: 'IBM Plex Mono Local', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted-3);
+  line-height: 1.9;
+}
+
+.cardShot {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  height: auto;
+  border: 1px solid var(--line);
+}
+
+.eyebrow {
+  display: block;
+  font-family: 'IBM Plex Mono Local', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: 'Archivo Black Local', system-ui, sans-serif;
+  font-size: 26px;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.subtitle {
+  font-family: 'IBM Plex Mono Local', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.cta {
+  display: block;
+  text-align: center;
+  font-family: 'Archivo Black Local', system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--bg);
+  background: var(--ink);
+  padding: 18px;
+  text-decoration: none;
+}
+
+.cta:hover {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.download {
+  flex: 1 1 auto;
+  min-width: 132px;
+  text-align: center;
+  font-family: 'IBM Plex Mono Local', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  border: 1px solid var(--line-3);
+  background: var(--surface);
+  padding: 12px 8px;
+  text-decoration: none;
+}
+
+.download:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-family: 'IBM Plex Mono Local', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted-3);
+}
+
+.foot {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* No desktop o card fica ao lado do texto, em vez de empilhado com metade da
+   tela vazia — mesma correção feita no editor. */
+@media (min-width: 860px) {
+  .page {
+    max-width: 940px;
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-areas:
+      'top   top'
+      'shot  body'
+      'shot  foot';
+    align-content: start;
+    column-gap: 48px;
+    padding: 32px 32px 48px;
+  }
+
+  .top {
+    grid-area: top;
+  }
+
+  .cardShot {
+    grid-area: shot;
+    max-width: 100%;
+    position: sticky;
+    top: 32px;
+  }
+
+  .page > div:not(.top),
+  .page > h1,
+  .page > .cta,
+  .page > .section {
+    grid-column: 2;
+  }
+
+  .foot {
+    grid-area: foot;
+    grid-column: 2;
+  }
+}

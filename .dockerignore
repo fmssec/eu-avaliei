@@ -1,0 +1,14 @@
+node_modules
+.next
+.data
+.git
+.env.local
+.env*.local
+npm-debug.log*
+*.tsbuildinfo
+
+# O bundle de design é referência visual, não entra na imagem.
+eu-avaliei-formul-rio-de-design
+
+# As fontes são baixadas durante o build da imagem.
+public/fonts

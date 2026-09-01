@@ -1,0 +1,245 @@
+/*
+ * Tokens da interface.
+ *
+ * A paleta original do arquivo de design foi corrigida por contraste medido:
+ * o cinza mais escuro ficava em 2,96:1 sobre o preto, e os intermediários em
+ * 3,7–4,3:1 — reprovados para os 9px em que eles eram efetivamente usados. A
+ * escala abaixo tem 4,5:1 no pior caso, nos dois temas.
+ *
+ * O CARD não muda com o tema. Ele é o artefato compartilhável, e sua chapa
+ * escura com moldura por raridade é a identidade do produto — as cores dele
+ * vivem em src/lib/design.ts, não aqui.
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #08080a;
+  --surface: #121216;
+  --surface-2: #16161b;
+
+  --ink: #f5f2eb;
+  --ink-soft: #dedbd3;
+  --ink-dim: #c9c6be;
+  --muted: #b0ada6;
+  --muted-2: #a09d96;
+  --muted-3: #918e87;
+  --muted-4: #8a8780;
+  --muted-5: #84817a;
+
+  --line: #2a2a30;
+  --line-2: #33333a;
+  --line-3: #3d3d45;
+
+  --gold: #e8be5c;
+  --ok: #6fd08a;
+  --warn: #f0906b;
+
+  --on-accent: #08080a;
+
+  --rarity-comum: #8f9298;
+  --rarity-bronze: #bb7b4e;
+  --rarity-prata: #bbc5d1;
+  --rarity-ouro: #e4b750;
+  --rarity-especial: #eb9afd;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f5f2eb;
+  --surface: #eae6dc;
+  --surface-2: #efece4;
+
+  --ink: #14141a;
+  --ink-soft: #2e2e36;
+  --ink-dim: #3e3e47;
+  --muted: #4e4e57;
+  --muted-2: #55555e;
+  --muted-3: #5c5c65;
+  --muted-4: #61616a;
+  --muted-5: #66666f;
+
+  --line: #d8d3c8;
+  --line-2: #cac5b9;
+  --line-3: #b9b4a7;
+
+  --gold: #6e4e08;
+  --ok: #146130;
+  --warn: #8f3a12;
+
+  --on-accent: #f5f2eb;
+
+  --rarity-comum: #5f6167;
+  --rarity-bronze: #8a5528;
+  --rarity-prata: #5b6470;
+  --rarity-ouro: #7a5e12;
+  --rarity-especial: #8b3aa0;
+}
+
+/* Sem escolha salva, segue o sistema. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --bg: #f5f2eb;
+    --surface: #eae6dc;
+    --surface-2: #efece4;
+
+    --ink: #14141a;
+    --ink-soft: #2e2e36;
+    --ink-dim: #3e3e47;
+    --muted: #4e4e57;
+    --muted-2: #55555e;
+    --muted-3: #5c5c65;
+    --muted-4: #61616a;
+    --muted-5: #66666f;
+
+    --line: #d8d3c8;
+    --line-2: #cac5b9;
+    --line-3: #b9b4a7;
+
+    --gold: #6e4e08;
+    --ok: #146130;
+    --warn: #8f3a12;
+
+    --on-accent: #f5f2eb;
+
+    --rarity-comum: #5f6167;
+    --rarity-bronze: #8a5528;
+    --rarity-prata: #5b6470;
+    --rarity-ouro: #7a5e12;
+    --rarity-especial: #8b3aa0;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), 'Barlow Condensed', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--ink);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono), 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.display {
+  font-family: var(--font-display), 'Archivo Black', system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* ---- Sliders ------------------------------------------------------------
+ * A nota geral é o controle mais tocado do app (spec §7), então o alvo de
+ * toque é generoso e o polegar tem contraste alto contra o fundo.
+ */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--line-3);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  background: var(--ink);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--muted-3);
+}
+
+input[type='range'].mini::-webkit-slider-runnable-track {
+  height: 4px;
+}
+
+input[type='range'].mini::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-width: 2px;
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  background: var(--line-3);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--ink);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+}
+
+input[type='range'].mini::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+input[type='range']:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
