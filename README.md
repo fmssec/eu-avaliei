@@ -65,12 +65,44 @@ O escopo do MVP da especificação, inteiro:
 - **Personalização**: molduras Craque e Pôster, cinco níveis de raridade, frase de até 80 caracteres, escala 0–10 ou 0–100, sobreposição das áreas seguras do Story.
 - **Compartilhamento** nas cinco camadas: Web Share API L2, deep links, clipboard, download e a landing do card.
 - **Formatos**: Story 1080×1920, quadrado 1080×1080, `og:image` 1200×630 e X 1600×900.
-- **Landing** `/c/{slug}-v{n}` com SSR, `og:` e `twitter:` corretos e download em todos os formatos.
+- **Preview de link do site** com `og:` e `twitter:` corretos, renderizado pelo mesmo renderizador.
 - **Arte própria**: anexar arquivo do dispositivo ou colar um link, no lugar do pôster da base.
 - **Tema claro e escuro**, com um terceiro estado — seguir o sistema — que é o padrão.
 - **Layout que usa o desktop**: acima de 960px o card vira uma coluna fixa e grande ao lado dos controles. Continua mobile-first.
-- **Sem login.** O card nasce anônimo, com `claim_token` no `localStorage`.
-- **`card_events`** instrumentado desde o primeiro commit.
+- **Sem login e sem conta.** Nada é guardado — nem do lado do servidor, nem do seu.
+- **Instrumentação** do funil desde o primeiro commit, agora via stdout.
+
+## O card não é guardado
+
+A decisão que define a arquitetura atual: **nada é persistido.** O card existe
+enquanto está sendo feito e vira a imagem que a pessoa leva embora.
+
+Isso saiu de uma pergunta boa — por que o card precisa existir entre
+requisições, se ele é gerado uma vez? A resposta original era: porque a landing
+por card e o `og:image` por card são requisições de outras pessoas, depois. Mas
+isso era uma escolha, não uma lei, e ela custava caro: exigia disco persistente,
+o que eliminava toda hospedagem gratuita.
+
+Medimos a alternativa de levar o card na URL: **48 caracteres hoje contra 392 a
+493**. Link de 400 caracteres em conversa parece spam, e o link é o produto.
+
+A saída foi outra: o link de compartilhamento aponta para o **site**, não para
+o card. O que isso muda, honestamente:
+
+| Caminho | Antes | Agora |
+|---|---|---|
+| Share sheet com arquivo (mobile) | imagem inteira | **igual** — é o caminho principal |
+| Baixar / copiar | imagem inteira | **igual** |
+| Deep link (desktop) | link virava o card via og:image | texto + link do site; a imagem vai anexada à mão |
+| Métrica da tese | retorno por card | retorno **agregado**, via `?de={canal}` |
+
+O preview de link que importa passou a ser o do site — daí `preload: false` nas
+fontes: os nove `<link rel="preload">` do next/font empurravam o `og:image` para
+o byte 3141 do `<head>`. Sem eles, 2481.
+
+A instrumentação sobreviveu sem banco: os eventos saem em JSON de uma linha no
+stdout, que toda hospedagem coleta de graça. `grep '[evento]' | jq` responde o
+funil.
 
 ## Decisões de implementação
 
@@ -112,10 +144,6 @@ Duas armadilhas a mais, que custam meia hora de depuração cada: o Satori **que
 `navigator.share()` exige ativação transitória, e no iOS um `await` dentro do handler de clique a invalida. Se o blob fosse gerado ao clicar, a chamada seria rejeitada.
 
 Por isso `useCardBlob` dispara o render assim que o usuário entra na personalização e guarda o `File` pronto. O clique em compartilhar chama `shareFile()` **sem nenhum `await` antes** — só consome o que já existe. O feature-detect é `navigator.canShare({ files })`, nunca `navigator.share`, e o `share()` vai com `files` sozinho, sem `title` nem `text`.
-
-### Persistência
-
-O store é uma interface (`src/lib/store/index.ts`) com uma implementação em arquivo (`.data/db.json`), para o MVP rodar sem infra. O schema de destino está em `db/schema.sql`, com os mesmos campos da especificação e a view `card_funnel` já pronta. Ligar o Postgres é escrever uma segunda implementação de `Store`; nada acima daquela camada muda.
 
 ### Arte enviada pelo usuário
 

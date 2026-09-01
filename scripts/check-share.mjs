@@ -1,15 +1,17 @@
 /**
  * Checklist de compartilhamento (spec §11), na parte que dá para automatizar.
  *
- * Uso:  node scripts/check-share.mjs http://localhost:3000
+ * Uso:  node scripts/check-share.mjs https://euavaliei.com.br
  *
- * Cria um card descartável, e verifica o que quebra o canal em silêncio: peso
- * do og:image, ordem das tags no <head>, ausência de CSS/JS inline antes
- * delas, URL absoluta, e o cache-bust da versão.
+ * O que ele verifica mudou junto com o produto. Não existe mais página por
+ * card, então não há og:image por card para conferir — o preview de link que
+ * importa agora é o do site, que é o que aparece em toda conversa onde alguém
+ * cola o endereço. O resto continua: peso da imagem, ordem das tags no <head>,
+ * e os quatro formatos dentro do teto de bytes.
  *
  * O que NÃO dá para automatizar e continua sendo manual, todo release:
- *   · mandar o link numa conversa real de WhatsApp e olhar o preview;
  *   · abrir a share sheet num iPhone e num Android de verdade;
+ *   · mandar o link do site numa conversa e olhar o preview;
  *   · olhar o card reduzido a 300px e decidir se ainda está legível.
  */
 
@@ -23,62 +25,53 @@ function check(label, ok, detail = '') {
   console.log(`${ok ? '  ok  ' : ' FALHA'} ${label}${detail ? ` — ${detail}` : ''}`);
 }
 
-function kb(bytes) {
-  return `${Math.round(bytes / 1024)} KB`;
+function peso(bytes) {
+  return bytes < 1_000_000
+    ? `${Math.round(bytes / 1024)} KB`
+    : `${(bytes / 1_000_000).toFixed(2)} MB`;
 }
+
+/** Um card qualquer, com arte, para exercitar o caminho mais pesado. */
+const CARD =
+  'fr=ficha&o=8.8&sm=10&t=The+Last+of+Us&cr=Naughty+Dog&y=2013&cat=game' +
+  '&cap=joguei+em+2013+e+ainda+penso+na+%C3%BAltima+hora&a=%40fz' +
+  '&s=Gameplay%3A8.8%7EHist%C3%B3ria%3A9.8%7EArte%3A9.2%7ETrilha%3A9.5%7ERejogabilidade%3A7.4%7EPerformance%3A8.1' +
+  '&art=%2Fapi%2Fartwork%3Fsrc%3Dhttps%253A%252F%252Fimages.igdb.com%252Figdb%252Fimage%252Fupload%252Ft_cover_big%252Fco1r7f.jpg';
+
+/** Tetos da matriz de formatos (spec §3.1). */
+const FORMATOS = {
+  story: { limite: 2_000_000, rotulo: '2 MB', dim: [1080, 1920] },
+  square: { limite: 2_000_000, rotulo: '2 MB', dim: [1080, 1080] },
+  og: { limite: 250_000, rotulo: '250 KB', dim: [1200, 630] },
+  wide: { limite: 5_000_000, rotulo: '5 MB', dim: [1600, 900] },
+};
 
 async function main() {
   console.log(`\nChecklist de compartilhamento · ${base}\n`);
 
-  // --- card de teste -------------------------------------------------------
-  const search = await fetch(`${base}/api/search?q=ainda`).then((r) => r.json());
-  const media = search.results?.[0];
-  if (!media) throw new Error('A busca não devolveu nenhuma mídia. O servidor está no ar?');
+  // --- os quatro formatos, com arte real -----------------------------------
+  for (const [formato, { limite, rotulo }] of Object.entries(FORMATOS)) {
+    const res = await fetch(`${base}/api/preview?f=${formato}&${CARD}`);
+    const bytes = (await res.arrayBuffer()).byteLength;
+    check(
+      `${formato} dentro do teto de ${rotulo}`,
+      res.ok && bytes > 0 && bytes <= limite,
+      `${res.status} · ${peso(bytes)}`,
+    );
+  }
 
-  const created = await fetch(`${base}/api/cards`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      externalId: media.externalId,
-      overall: 8.4,
-      overallMode: 'computed',
-      frameId: 'ficha',
-      caption: 'card de verificação',
-      authorHandle: '@check',
-      stats: ['Roteiro', 'Atuação', 'Direção', 'Trilha', 'Visual', 'Ritmo'].map((label) => ({
-        label,
-        value: 8.4,
-      })),
-    }),
-  }).then((r) => r.json());
-
-  const { slug, claimToken } = created;
-  const url = `${base}/c/${slug}-v1`;
-
-  // --- og:image ------------------------------------------------------------
-  const og = await fetch(`${base}/api/render/${slug}.jpg?format=og&v=1`);
-  const ogBytes = (await og.arrayBuffer()).byteLength;
-  check('og:image é JPEG', og.headers.get('content-type') === 'image/jpeg', og.headers.get('content-type'));
-  check('og:image abaixo de 250 KB', ogBytes <= 250_000, kb(ogBytes));
-  check(
-    'og:image com cache imutável',
-    (og.headers.get('cache-control') ?? '').includes('immutable'),
-    og.headers.get('cache-control') ?? '',
-  );
-
-  // --- <head> visto por um crawler ----------------------------------------
-  const html = await fetch(url, { headers: { 'User-Agent': CRAWLER_UA } }).then((r) => r.text());
+  // --- preview de link do site ---------------------------------------------
+  const html = await fetch(base, { headers: { 'User-Agent': CRAWLER_UA } }).then((r) => r.text());
   const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>') + 7);
 
   const ogImageAt = head.indexOf('property="og:image"');
-  const twitterAt = head.indexOf('name="twitter:card"');
   const inlineStyleAt = head.indexOf('<style');
   const inlineScriptAt = head.search(/<script(?![^>]*\bsrc=)/);
 
-  check('tags og: presentes no <head> servido ao crawler', ogImageAt !== -1);
+  check('tags og: no <head> servido ao crawler', ogImageAt !== -1);
   check('twitter:card = summary_large_image', head.includes('content="summary_large_image"'));
   check(
-    'og:image dentro dos primeiros 4 KB do <head>',
+    'og:image nos primeiros 4 KB do <head>',
     ogImageAt !== -1 && ogImageAt < 4096,
     ogImageAt === -1 ? 'ausente' : `offset ${ogImageAt} de ${head.length} bytes`,
   );
@@ -92,57 +85,42 @@ async function main() {
     inlineScriptAt === -1 || inlineScriptAt > ogImageAt,
     inlineScriptAt === -1 ? 'nenhum script inline' : `script inline em ${inlineScriptAt}`,
   );
-  check('twitter:card presente', twitterAt !== -1);
 
-  const ogUrlMatch = head.match(/property="og:image" content="([^"]+)"/);
-  const ogUrl = ogUrlMatch?.[1]?.replace(/&amp;/g, '&') ?? '';
-  check('og:image é URL absoluta', /^https?:\/\//.test(ogUrl), ogUrl || 'ausente');
+  const ogUrl =
+    head.match(/property="og:image" content="([^"]+)"/)?.[1]?.replace(/&amp;/g, '&') ?? '';
+  check('og:image é URL absoluta', /^https?:\/\//.test(ogUrl), ogUrl.slice(0, 70) || 'ausente');
   check(
     'og:image em HTTPS (obrigatório em produção)',
     ogUrl.startsWith('https://') || ogUrl.includes('localhost'),
     ogUrl.startsWith('https://') ? 'https' : 'http — só aceitável em desenvolvimento',
   );
 
-  // --- dimensões dos formatos ---------------------------------------------
-  const expected = {
-    story: [1080, 1920],
-    square: [1080, 1080],
-    og: [1200, 630],
-    wide: [1600, 900],
-  };
-  for (const [format, [w, h]] of Object.entries(expected)) {
-    const declared = head.includes(`property="og:image:width" content="${w}"`);
-    if (format === 'og') check(`og:image declara ${w}×${h}`, declared);
+  // O preview do site é a imagem que aparece em toda conversa: o teto de
+  // 250 KB do WhatsApp vale para ela igual valia para a de cada card.
+  if (ogUrl) {
+    const res = await fetch(ogUrl).catch(() => null);
+    if (res?.ok) {
+      const bytes = (await res.arrayBuffer()).byteLength;
+      check(
+        'imagem de preview do site abaixo de 250 KB',
+        bytes <= 250_000,
+        `${res.headers.get('content-type')} · ${peso(bytes)}`,
+      );
+    } else {
+      check('imagem de preview do site acessível', false, res ? `HTTP ${res.status}` : 'sem resposta');
+    }
   }
 
-  // --- cache-bust por versão ----------------------------------------------
-  const patched = await fetch(`${base}/api/cards/${slug}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-claim-token': claimToken },
-    body: JSON.stringify({ caption: 'editado' }),
-  }).then((r) => r.json());
-  check(
-    'editar o card incrementa render_version',
-    patched.renderVersion === 2,
-    `v${patched.renderVersion}`,
-  );
+  // --- busca ----------------------------------------------------------------
+  const busca = await fetch(`${base}/api/search?q=the+last+of+us`).then((r) => r.json());
+  check('busca responde com resultados', (busca.results ?? []).length > 0, `${(busca.results ?? []).length} itens`);
 
-  const redirected = await fetch(`${base}/c/${slug}-v1`, { redirect: 'follow' });
-  check(
-    'URL de versão antiga redireciona para a canônica',
-    redirected.url.endsWith(`-v2`),
-    redirected.url,
-  );
-
-  // --- resumo --------------------------------------------------------------
   const failed = results.filter((r) => !r.ok);
-  console.log(
-    `\n${results.length - failed.length}/${results.length} verificações passaram.`,
-  );
+  console.log(`\n${results.length - failed.length}/${results.length} verificações passaram.`);
   console.log(
     '\nAinda manual, em aparelho real, todo release:\n' +
-      '  · enviar o link numa conversa de WhatsApp e conferir o preview\n' +
       '  · abrir a share sheet num iPhone e num Android\n' +
+      '  · colar o link do site numa conversa e conferir o preview\n' +
       '  · olhar o card reduzido a 300px e julgar a legibilidade\n' +
       '  · conferir as áreas seguras do 9:16 num Story de verdade\n',
   );

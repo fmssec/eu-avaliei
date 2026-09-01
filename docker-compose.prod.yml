@@ -1,0 +1,8 @@
+# Override de servidor:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# A única diferença é o restart automático. Na máquina de desenvolvimento ele
+# atrapalha — sobe tudo sozinho ao abrir o Docker Desktop. Num servidor é o
+# oposto: depois de um reboot o serviço precisa voltar sem intervenção.
+services:
+  web:
+    restart: unless-stopped

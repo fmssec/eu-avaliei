@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
@@ -12,8 +13,11 @@ import sharp from 'sharp';
  * de metadado, e garante que o que servimos é uma imagem de verdade — não um
  * arquivo com extensão de imagem.
  *
- * Guardar em disco, e não embutir no card, também é o que permite o link
- * `/api/uploads/{id}` ser reusado por todos os formatos sem reenviar nada.
+ * **É um cache, não um acervo.** Como nada no produto é persistido, a imagem
+ * vive no diretório temporário do sistema e existe só para atravessar a sessão
+ * de edição: o link `/api/uploads/{id}` é reusado pelos quatro formatos sem
+ * reenviar bytes. Se sumir — reinício, limpeza do sistema, outra instância —,
+ * a pessoa escolhe a imagem de novo. Nada que precise durar é guardado aqui.
  */
 
 export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
@@ -21,7 +25,10 @@ export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const STORED_MAX_EDGE = 1600;
 const STORED_QUALITY = 86;
 
-const DIR = join(process.cwd(), '.data', 'uploads');
+const DIR = join(tmpdir(), 'eu-avaliei-uploads');
+
+/** Validade do cache. Passado isso o arquivo é descartado na próxima leitura. */
+const TTL_MS = 6 * 60 * 60 * 1000;
 
 /** Id = sha256 do conteúdo processado. Dedupe de graça, e não é enumerável. */
 export type UploadId = string;
@@ -116,7 +123,10 @@ export async function storeUpload(input: Buffer): Promise<StoredUpload> {
 
 export async function readUpload(id: string): Promise<Buffer | null> {
   try {
-    return await readFile(uploadPath(id));
+    const path = uploadPath(id);
+    const info = await stat(path);
+    if (Date.now() - info.mtimeMs > TTL_MS) return null;
+    return await readFile(path);
   } catch {
     return null;
   }

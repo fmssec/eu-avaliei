@@ -6,24 +6,21 @@ services:
       - "3000:3000"
 
     # A configuração vive em .env.local, o mesmo arquivo que o `npm run dev`
-    # usa — uma fonte só para os dois modos. Ele está no .gitignore e no
-    # .dockerignore: o token nunca é versionado nem embutido na imagem, e é
-    # lido do host na hora de subir o container.
-    #
-    # `required: false` para o projeto continuar subindo sem o arquivo, no
-    # provider mock, que é o caminho de quem só quer ver funcionando.
+    # usa. Ele está no .gitignore e no .dockerignore: as chaves nunca são
+    # versionadas nem embutidas na imagem, e são lidas do host ao subir.
     env_file:
       - path: .env.local
         required: false
 
-    volumes:
-      # Cards e artes enviadas sobrevivem ao recriar o container.
-      - card-data:/app/.data
+    # Sem volume: nada no produto precisa sobreviver ao container. O card
+    # existe enquanto está sendo feito e vira a imagem que a pessoa leva; as
+    # artes enviadas são cache de sessão em /tmp. É isso que permite hospedar
+    # de graça, em qualquer lugar que rode um container.
+    tmpfs:
+      - /tmp
 
     # Sem política de restart, de propósito: `unless-stopped` e `always` fazem
     # o daemon subir o container sozinho toda vez que o Docker Desktop abre.
     # Aqui o start é sempre manual — `docker compose up`.
+    # Em servidor, use docker-compose.prod.yml, que reativa o restart.
     restart: "no"
-
-volumes:
-  card-data:

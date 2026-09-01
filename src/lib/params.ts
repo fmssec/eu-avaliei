@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { FORMAT_IDS, type FormatId } from './formats';
 import { clampScore, roundScore, type ScaleMax } from './scale';
-import type { Category, FrameId, OverallMode, Stat } from './types';
-import { MAX_STATS, slugifyAxis } from './axes';
+import type { Category, FrameId } from './types';
+import { MAX_STATS } from './axes';
 import { isAcceptableArtworkUrl } from './media/artwork';
 
 /**
@@ -147,43 +147,3 @@ export function buildPreviewQuery(src: PreviewSource): string {
   if (src.displayWidth) q.set('w', String(src.displayWidth));
   return q.toString();
 }
-
-/** Corpo aceito por POST /api/cards. */
-export const createCardSchema = z.object({
-  externalId: z.string().min(1).max(64),
-  overall: z.number().transform(roundScore),
-  overallMode: z.enum(MODES),
-  frameId: z.preprocess((v) => (v === 'craque' ? 'ficha' : v), z.enum(FRAMES)),
-  themeId: z.string().max(32).default('default'),
-  caption: z.string().max(80).default(''),
-  // A arte vem do cliente, então é validada contra o formato que o servidor
-  // emite. Aceitar string livre aqui viraria <img src> arbitrário no render.
-  artworkUrl: z
-    .string()
-    .max(600)
-    .nullable()
-    .default(null)
-    .refine((v) => v === null || isAcceptableArtworkUrl(v), {
-      message: 'Origem de arte não permitida',
-    }),
-  authorHandle: z.string().max(32).nullable().default(null),
-  stats: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(24),
-        value: z.number(),
-      }),
-    )
-    .max(MAX_STATS)
-    .default([]),
-});
-
-export function normalizeStats(raw: { label: string; value: number }[]): Stat[] {
-  return raw.slice(0, MAX_STATS).map((s) => ({
-    key: slugifyAxis(s.label),
-    label: s.label,
-    value: roundScore(s.value),
-  }));
-}
-
-export type { OverallMode };

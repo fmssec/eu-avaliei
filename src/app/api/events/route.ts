@@ -1,23 +1,29 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { store } from '@/lib/store';
 
 export const runtime = 'nodejs';
 
 /**
- * Instrumentação da tese (spec §6). A pergunta que `card_events` responde:
- * dos cards criados, quantos são efetivamente compartilhados, por qual canal,
- * e quantos cliques de volta cada canal gera. Sem isso não dá para saber se o
- * critério de sucesso do MVP foi atingido.
+ * Instrumentação da tese, sem banco.
+ *
+ * A pergunta continua a mesma da spec §6: dos cards criados, quantos são
+ * efetivamente compartilhados, por qual canal, e quanto retorno cada canal
+ * gera. O que mudou é a granularidade — sem card persistido, não há como
+ * atribuir uma visita a um card específico, então a medição é agregada.
+ *
+ * Os eventos saem em JSON de uma linha no stdout, que é o que toda hospedagem
+ * coleta de graça. `grep` e `jq` já respondem o funil; quando o volume pedir
+ * mais, é apontar um coletor para o mesmo fluxo.
  */
 const eventSchema = z.object({
-  slug: z.string().min(1).max(64),
-  event: z.enum(['created', 'rendered', 'shared', 'viewed', 'converted']),
+  event: z.enum(['created', 'shared', 'viewed', 'converted']),
   channel: z
-    .enum(['webshare', 'whatsapp', 'x', 'telegram', 'clipboard', 'download', 'og'])
+    .enum(['webshare', 'whatsapp', 'x', 'telegram', 'clipboard', 'download', 'site'])
     .nullable()
     .default(null),
   format: z.string().max(24).nullable().default(null),
+  /** Categoria da mídia avaliada, para saber o que as pessoas realmente usam. */
+  category: z.string().max(16).nullable().default(null),
 });
 
 export async function POST(request: Request) {
@@ -31,16 +37,15 @@ export async function POST(request: Request) {
   const parsed = eventSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Evento inválido' }, { status: 400 });
 
-  const card = await store.getCardBySlug(parsed.data.slug);
-  if (!card) return NextResponse.json({ error: 'Card não encontrado' }, { status: 404 });
-
-  await store.recordEvent({
-    cardId: card.id,
-    event: parsed.data.event,
-    channel: parsed.data.channel,
-    format: parsed.data.format,
-    referrer: request.headers.get('referer'),
-  });
+  // Prefixo fixo para separar do resto do log: `grep '[evento]' | jq`.
+  console.log(
+    '[evento]',
+    JSON.stringify({
+      ...parsed.data,
+      referrer: request.headers.get('referer'),
+      at: new Date().toISOString(),
+    }),
+  );
 
   return new NextResponse(null, { status: 204 });
 }

@@ -15,8 +15,8 @@ import { buildPreviewQuery } from '@/lib/params';
 import { deriveOverall } from '@/lib/overall';
 import { roundScore, type ScaleMax } from '@/lib/scale';
 import { slugify } from '@/lib/slugify';
-import { saveClaim } from '@/lib/client/claims';
 import { useCardBlob, useDebounced } from '@/lib/client/useCardBlob';
+import { track } from '@/lib/share';
 import type { FrameId, Media, OverallMode } from '@/lib/types';
 import styles from './editor.module.css';
 import { StepBusca } from './steps/StepBusca';
@@ -30,12 +30,6 @@ export type Step = 'busca' | 'nota' | 'estilo' | 'share';
 export interface EditableStat {
   label: string;
   value: number;
-}
-
-export interface SavedCard {
-  slug: string;
-  renderVersion: number;
-  claimToken: string;
 }
 
 const STEPS: { id: Step; label: string }[] = [
@@ -77,9 +71,6 @@ export function Editor() {
   /** Arte anexada pelo usuário. Vence a arte da fonte de metadados. */
   const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
 
-  const [saved, setSaved] = useState<SavedCard | null>(null);
-  const [dirtySinceSave, setDirtySinceSave] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const notify = useCallback((message: string) => {
@@ -101,8 +92,6 @@ export function Editor() {
     setOverall(DEMO_OVERALL);
     setMode('computed');
     setCaption(DEMO_CAPTION);
-    setSaved(null);
-    setDirtySinceSave(false);
     setStep('nota');
   }, []);
 
@@ -112,8 +101,6 @@ export function Editor() {
     setStats(seedStats(picked, 8.0));
     setOverall(8.0);
     setMode('computed');
-    setSaved(null);
-    setDirtySinceSave(false);
     setStep('nota');
   }, []);
 
@@ -125,7 +112,6 @@ export function Editor() {
     (value: number) => {
       const v = roundScore(value);
       setOverall(v);
-      setDirtySinceSave(true);
       if (mode === 'computed') {
         setStats((current) => current.map((s) => ({ ...s, value: v })));
       }
@@ -135,7 +121,6 @@ export function Editor() {
 
   const changeStat = useCallback(
     (index: number, patch: Partial<EditableStat>) => {
-      setDirtySinceSave(true);
       setStats((current) => {
         const next = current.map((s, i) => (i === index ? { ...s, ...patch } : s));
         if (mode !== 'manual') setOverall(deriveOverall(mode, asStats(next), overall));
@@ -148,7 +133,6 @@ export function Editor() {
   const changeMode = useCallback(
     (next: OverallMode) => {
       setMode(next);
-      setDirtySinceSave(true);
       if (next !== 'manual') setOverall(deriveOverall(next, asStats(stats), overall));
     },
     [stats, overall],
@@ -211,80 +195,13 @@ export function Editor() {
   );
 
   /**
-   * Persiste o card ao chegar no compartilhamento. Sem login: o card nasce
-   * anônimo e o claim_token vai para o localStorage (spec §7).
+   * O card não é salvo: ele existe enquanto está sendo feito, e vira a imagem
+   * que a pessoa leva embora. O que registramos é só o evento, para saber
+   * quantos cards viram compartilhamento de fato.
    */
-  const persist = useCallback(async () => {
-    if (!media || saving) return;
-    if (saved && !dirtySinceSave) return;
-
-    setSaving(true);
-    try {
-      const payload = {
-        overall,
-        overallMode: mode,
-        frameId: frame,
-        themeId: 'default',
-        caption,
-        artworkUrl,
-        authorHandle: author.trim() || null,
-        stats,
-      };
-
-      if (saved) {
-        // Editar incrementa renderVersion no servidor: URL nova, scrape novo.
-        const res = await fetch(`/api/cards/${saved.slug}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-claim-token': saved.claimToken },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error('patch');
-        const data = (await res.json()) as { renderVersion: number };
-        setSaved({ ...saved, renderVersion: data.renderVersion });
-      } else {
-        const res = await fetch('/api/cards', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, externalId: media.externalId }),
-        });
-        if (!res.ok) throw new Error('post');
-        const data = (await res.json()) as {
-          slug: string;
-          renderVersion: number;
-          claimToken: string;
-        };
-        setSaved(data);
-        saveClaim({
-          slug: data.slug,
-          claimToken: data.claimToken,
-          title: media.title,
-          createdAt: new Date().toISOString(),
-        });
-      }
-      setDirtySinceSave(false);
-    } catch {
-      notify('NÃO FOI POSSÍVEL SALVAR O CARD');
-    } finally {
-      setSaving(false);
-    }
-  }, [
-    media,
-    saving,
-    saved,
-    dirtySinceSave,
-    overall,
-    mode,
-    frame,
-    caption,
-    artworkUrl,
-    author,
-    stats,
-    notify,
-  ]);
-
   useEffect(() => {
-    if (step === 'share') void persist();
-  }, [step, persist]);
+    if (step === 'share' && media) track('created', null, shareFormat, media.category);
+  }, [step, media, shareFormat]);
 
   const level = levelFor(overall);
 
@@ -364,20 +281,16 @@ export function Editor() {
           mediaArtworkUrl={media.artworkUrl}
           onArtwork={(url) => {
             setArtworkUrl(url);
-            setDirtySinceSave(true);
           }}
           onNotify={notify}
           onFrame={(f) => {
             setFrame(f);
-            setDirtySinceSave(true);
           }}
           onCaption={(c) => {
             setCaption(c);
-            setDirtySinceSave(true);
           }}
           onAuthor={(a) => {
             setAuthor(a);
-            setDirtySinceSave(true);
           }}
           onScaleMax={setScaleMax}
           onSafeArea={setShowSafeArea}
@@ -393,8 +306,7 @@ export function Editor() {
           format={shareFormat}
           onFormat={setShareFormat}
           prepared={prepared}
-          preparing={preparing || saving}
-          saved={saved}
+          preparing={preparing}
           caption={caption}
           overall={overall}
           scaleMax={scaleMax}

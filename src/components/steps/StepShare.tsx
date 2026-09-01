@@ -9,11 +9,11 @@ import {
   deepLink,
   downloadBlob,
   shareFile,
-  trackShare,
+  siteLink,
+  track,
 } from '@/lib/share';
 import type { PreparedCard } from '@/lib/client/useCardBlob';
 import type { Media } from '@/lib/types';
-import type { SavedCard } from '../Editor';
 import styles from '../editor.module.css';
 
 interface Props {
@@ -23,7 +23,6 @@ interface Props {
   onFormat: (format: FormatId) => void;
   prepared: PreparedCard | null;
   preparing: boolean;
-  saved: SavedCard | null;
   caption: string;
   overall: number;
   scaleMax: ScaleMax;
@@ -47,9 +46,14 @@ function kb(bytes: number): string {
 /**
  * Passo 4 — a cascata de compartilhamento (spec §3.3).
  *
- * O botão primário chama `navigator.share()` sem nenhum `await` antes: o blob
- * já foi gerado durante a edição. Se ele fosse gerado aqui, o iOS invalidaria
- * a ativação transitória e rejeitaria a chamada.
+ * O botão primário chama `navigator.share()` sem nenhum `await` antes: o
+ * arquivo já foi gerado durante a edição. Se fosse gerado aqui, o iOS
+ * invalidaria a ativação transitória e rejeitaria a chamada.
+ *
+ * O card não é salvo em lugar nenhum. Pelo caminho principal — a share sheet
+ * com arquivo — isso não muda nada: a imagem viaja inteira. Pelos deep links,
+ * que só aceitam texto, o que vai é o convite com o endereço do site, e a
+ * imagem precisa ser anexada com "copiar" ou "baixar".
  */
 export function StepShare({
   media,
@@ -58,7 +62,6 @@ export function StepShare({
   onFormat,
   prepared,
   preparing,
-  saved,
   caption,
   overall,
   scaleMax,
@@ -66,33 +69,14 @@ export function StepShare({
   onNotify,
 }: Props) {
   const spec = FORMATS[format];
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
 
-  /** URL canônica versionada: editar o card muda a URL e fura o cache do WhatsApp. */
-  const cardUrl = useMemo(() => {
-    if (!saved || typeof window === 'undefined') return null;
-    return `${window.location.origin}/c/${saved.slug}-v${saved.renderVersion}`;
-  }, [saved]);
-
-  /**
-   * O texto que acompanha o link nos deep links.
-   *
-   * Começa pela marca — "Eu avaliei: Pulp Fiction" se lê como frase, e é o que
-   * a pessoa do outro lado vê antes de qualquer coisa. Termina com o convite:
-   * cada card compartilhado precisa ser também um caminho para quem recebeu
-   * fazer o seu, senão o compartilhamento não gera o próximo usuário.
-   */
   const shareText = useMemo(() => {
     const nota = formatScore(overall, scaleMax);
     const linhas = [`Eu avaliei: ${media.title} — ${nota}`];
     if (caption) linhas.push(`"${caption}"`);
     return linhas.join('\n');
   }, [media.title, overall, scaleMax, caption]);
-
-  /** Convite anexado ao texto onde o destino aceita mensagem longa. */
-  const shareInvite = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return `Veja a avaliação e faça a sua em ${window.location.host}`;
-  }, []);
 
   const canNativeShare = prepared ? canShareFiles(prepared.file) : false;
 
@@ -101,31 +85,31 @@ export function StepShare({
     // Chamada síncrona, dentro do gesto. Nada de `await` acima desta linha.
     void shareFile(prepared.file).then((result) => {
       if (result.ok) {
-        if (saved) trackShare(saved.slug, 'shared', 'webshare', format);
+        track('shared', 'webshare', format, media.category);
         return;
       }
       if (result.cancelled) return;
-      onNotify('SHARE SHEET INDISPONÍVEL · USE OS DESTINOS ABAIXO');
+      onNotify('NÃO FOI POSSÍVEL ABRIR A LISTA DE APLICATIVOS');
     });
   };
 
   const handleDeepLink = (channel: 'whatsapp' | 'x' | 'telegram') => {
-    if (!cardUrl) {
-      onNotify('SALVANDO O CARD…');
-      return;
-    }
-    if (saved) trackShare(saved.slug, 'shared', channel, format);
-    // O X conta a URL no limite de caracteres e a anexa sozinho, então o
-    // convite iria só ocupar espaço lá.
-    const texto = channel === 'x' ? shareText : `${shareText}\n\n${shareInvite}`;
-    window.open(deepLink(channel, texto, cardUrl), '_blank', 'noopener,noreferrer');
+    track('shared', channel, format, media.category);
+    const convite = `Faça a sua também:`;
+    const texto = `${shareText}\n\n${convite}`;
+    window.open(
+      deepLink(channel, texto, siteLink(origin, channel)),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    onNotify('ANEXE A IMAGEM: USE COPIAR OU BAIXAR');
   };
 
   const handleCopy = () => {
     if (!prepared) return;
     void copyImage(prepared.blob).then((result) => {
       if (result.ok) {
-        if (saved) trackShare(saved.slug, 'shared', 'clipboard', format);
+        track('shared', 'clipboard', format, media.category);
         onNotify('IMAGEM COPIADA');
       } else {
         onNotify('SEU NAVEGADOR NÃO PERMITE COPIAR IMAGEM');
@@ -136,7 +120,7 @@ export function StepShare({
   const handleDownload = () => {
     if (!prepared) return;
     downloadBlob(prepared.blob, prepared.file.name);
-    if (saved) trackShare(saved.slug, 'shared', 'download', format);
+    track('shared', 'download', format, media.category);
   };
 
   const overBudget = prepared !== null && prepared.bytes > spec.maxBytes;
@@ -185,78 +169,48 @@ export function StepShare({
         </span>
       </div>
 
-      <button
-        type="button"
-        className={styles.primary}
-        disabled={!prepared}
-        onClick={handleShare}
-      >
-        {canNativeShare ? 'ABRIR SHARE SHEET' : 'COMPARTILHAR'}
+      <button type="button" className={styles.primary} disabled={!prepared} onClick={handleShare}>
+        {canNativeShare ? 'COMPARTILHAR IMAGEM' : 'COMPARTILHAR'}
       </button>
       <div className={styles.footNote}>
         {canNativeShare
-          ? 'ABRE A LISTA DE APLICATIVOS DO SEU APARELHO'
-          : 'ESTE NAVEGADOR NÃO ABRE A LISTA DE APLICATIVOS — USE OS DESTINOS ABAIXO'}
+          ? 'A IMAGEM VAI INTEIRA PARA O APLICATIVO QUE VOCÊ ESCOLHER'
+          : 'NESTE NAVEGADOR, BAIXE OU COPIE A IMAGEM E ANEXE NA CONVERSA'}
       </div>
 
       <div className={styles.destinations}>
+        <button type="button" className={styles.destination} onClick={handleDownload} disabled={!prepared}>
+          <span className={styles.destinationLabel}>Baixar imagem</span>
+          <span className={styles.destinationVia}>{spec.label}</span>
+        </button>
+        <button type="button" className={styles.destination} onClick={handleCopy} disabled={!prepared}>
+          <span className={styles.destinationLabel}>Copiar imagem</span>
+          <span className={styles.destinationVia}>PARA COLAR NA CONVERSA</span>
+        </button>
         <button
           type="button"
           className={styles.destination}
-          disabled={!cardUrl}
           onClick={() => handleDeepLink('whatsapp')}
         >
           <span className={styles.destinationLabel}>WhatsApp</span>
-          <span className={styles.destinationVia}>MENSAGEM COM O LINK</span>
+          <span className={styles.destinationVia}>ABRE COM O TEXTO PRONTO</span>
         </button>
-        <button
-          type="button"
-          className={styles.destination}
-          disabled={!cardUrl}
-          onClick={() => handleDeepLink('x')}
-        >
+        <button type="button" className={styles.destination} onClick={() => handleDeepLink('x')}>
           <span className={styles.destinationLabel}>X</span>
-          <span className={styles.destinationVia}>POST COM O LINK</span>
+          <span className={styles.destinationVia}>ABRE COM O TEXTO PRONTO</span>
         </button>
         <button
           type="button"
           className={styles.destination}
-          disabled={!cardUrl}
           onClick={() => handleDeepLink('telegram')}
         >
           <span className={styles.destinationLabel}>Telegram</span>
-          <span className={styles.destinationVia}>MENSAGEM COM O LINK</span>
-        </button>
-        <button
-          type="button"
-          className={styles.destination}
-          disabled={!prepared}
-          onClick={handleCopy}
-        >
-          <span className={styles.destinationLabel}>Copiar imagem</span>
-          <span className={styles.destinationVia}>PARA COLAR EM QUALQUER LUGAR</span>
-        </button>
-        <button
-          type="button"
-          className={styles.destination}
-          disabled={!prepared}
-          onClick={handleDownload}
-        >
-          <span className={styles.destinationLabel}>Baixar</span>
-          <span className={styles.destinationVia}>{`${spec.ext.toUpperCase()} · ${spec.label}`}</span>
+          <span className={styles.destinationVia}>ABRE COM O TEXTO PRONTO</span>
         </button>
       </div>
 
       <div className={`${styles.footNote} ${styles.spacer}`}>
-        {cardUrl ? (
-          <>
-            SEU CARD ESTÁ NO AR EM {cardUrl.replace(/^https?:\/\//, '')}
-            <br />
-            GUARDADO NESTE NAVEGADOR — VOCÊ PODE EDITAR DEPOIS
-          </>
-        ) : (
-          'SALVANDO O CARD…'
-        )}
+        O CARD NÃO FICA GUARDADO — A IMAGEM QUE VOCÊ BAIXOU É A SUA CÓPIA
       </div>
     </section>
   );

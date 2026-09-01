@@ -1,7 +1,6 @@
 'use client';
 
 import type { FormatId } from './formats';
-import type { ShareChannel } from './types';
 
 /**
  * Cascata de compartilhamento (spec §3.3), em ordem de capacidade.
@@ -15,6 +14,15 @@ import type { ShareChannel } from './types';
  *   · `share()` exige ativação transitória, e um `await` dentro do handler de
  *     clique a invalida no iOS — por isso o blob é pré-gerado (ver useCardBlob).
  */
+
+export type ShareChannel =
+  | 'webshare'
+  | 'whatsapp'
+  | 'x'
+  | 'telegram'
+  | 'clipboard'
+  | 'download'
+  | 'site';
 
 export interface ShareResult {
   ok: boolean;
@@ -39,6 +47,9 @@ export function canShareFiles(file: File): boolean {
  * Compartilha o arquivo. NÃO recebe título nem texto de propósito: no iOS isso
  * faz a imagem ser ignorada. Precisa ser chamada direto do handler de clique,
  * sem nenhum `await` antes.
+ *
+ * Este é o caminho em que o card chega inteiro do outro lado — a imagem viaja
+ * como arquivo, não como preview de link.
  */
 export async function shareFile(file: File): Promise<ShareResult> {
   const nav = navigator as ShareNavigator;
@@ -55,9 +66,18 @@ export async function shareFile(file: File): Promise<ShareResult> {
 
 /**
  * Camada 2 — deep links. Nenhum deles aceita anexar imagem por URL: são
- * texto + link. Quem faz o trabalho visual aqui é o og:image da landing.
+ * texto + link.
+ *
+ * O link aponta para o site, não para o card: sem card persistido não existe
+ * página por card para linkar. A consequência é que, por este caminho, quem
+ * recebe vê o texto e o link — a imagem precisa ser anexada à mão, com os
+ * botões de copiar ou baixar.
  */
-export function deepLink(channel: 'whatsapp' | 'x' | 'telegram', text: string, url: string): string {
+export function deepLink(
+  channel: 'whatsapp' | 'x' | 'telegram',
+  text: string,
+  url: string,
+): string {
   switch (channel) {
     case 'whatsapp':
       return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
@@ -66,6 +86,17 @@ export function deepLink(channel: 'whatsapp' | 'x' | 'telegram', text: string, u
     case 'telegram':
       return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
   }
+}
+
+/**
+ * URL do site marcada com a origem.
+ *
+ * Sem página por card, a atribuição vira agregada: o `de=` é o que separa
+ * "chegou por um card compartilhado no WhatsApp" de tráfego direto, e é o que
+ * mantém o critério de sucesso do MVP mensurável.
+ */
+export function siteLink(origin: string, channel: ShareChannel): string {
+  return `${origin}/?de=${channel}`;
 }
 
 /** Camada 4 — clipboard. Fallback universal, principalmente no desktop. */
@@ -98,13 +129,13 @@ export function downloadBlob(blob: Blob, filename: string): ShareResult {
 }
 
 /** Registra o evento sem bloquear a interação — o envio pode falhar em silêncio. */
-export function trackShare(
-  slug: string,
-  event: 'shared' | 'converted' | 'viewed',
+export function track(
+  event: 'created' | 'shared' | 'viewed' | 'converted',
   channel: ShareChannel | null,
   format: FormatId | null,
+  category: string | null = null,
 ): void {
-  const body = JSON.stringify({ slug, event, channel, format });
+  const body = JSON.stringify({ event, channel, format, category });
   try {
     if (navigator.sendBeacon) {
       navigator.sendBeacon('/api/events', new Blob([body], { type: 'application/json' }));
