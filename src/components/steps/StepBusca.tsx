@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useDebounced } from '@/lib/client/useCardBlob';
+import { displayWidthFor, useDevicePixelRatio } from '@/lib/client/display';
 import { buildPreviewQuery } from '@/lib/params';
 import {
   DEMO_AUTHOR,
@@ -50,6 +51,7 @@ export function StepBusca({
   const [results, setResults] = useState<Media[]>([]);
   const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
   const settled = useDebounced(query.trim(), 300);
+  const dpr = useDevicePixelRatio();
 
   const demoQuery = useMemo(
     () =>
@@ -66,10 +68,10 @@ export function StepBusca({
         author: DEMO_AUTHOR,
         stats: DEMO_STATS,
         artworkUrl: DEMO_MEDIA.artworkUrl,
-        // Ele aparece a 158px; 420 cobre telas de alta densidade com folga.
-        displayWidth: 420,
+        // Aparece a 158 CSS px; a densidade da tela decide quantos pixels reais.
+        displayWidth: displayWidthFor(158, dpr, 'story'),
       }),
-    [],
+    [dpr],
   );
 
   useEffect(() => {

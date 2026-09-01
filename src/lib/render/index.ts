@@ -161,10 +161,15 @@ export async function renderCard(req: RenderRequest): Promise<RenderResult> {
       .asPng(),
   );
 
-  // Render de exibição (largura reduzida) sai sempre em JPEG: um PNG de foto a
-  // 640px passa de 800 KB, e nada disso vai para o arquivo compartilhado — o
-  // que importa aqui é aparecer rápido na tela.
-  const isDisplayRender = width < spec.width;
+  // Render de exibição sai sempre em JPEG: um PNG de foto passa de 800 KB, e
+  // nada disso vai para o arquivo compartilhado — o que importa na tela é
+  // aparecer rápido.
+  //
+  // O que define "é para exibição" é o parâmetro ter sido pedido, não a
+  // largura ser menor. Numa tela de densidade 3 o painel pede 1200, que é
+  // limitado ao tamanho real do formato — e aí uma comparação de larguras
+  // classificaria como arquivo final e devolveria 1,8 MB para mostrar na tela.
+  const isDisplayRender = req.maxWidth !== undefined;
   const { body, mime, ext } = isDisplayRender
     ? {
         body: await sharp(png).jpeg({ quality: 82, mozjpeg: true }).toBuffer(),

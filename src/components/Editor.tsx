@@ -16,6 +16,7 @@ import { deriveOverall } from '@/lib/overall';
 import { roundScore, type ScaleMax } from '@/lib/scale';
 import { slugify } from '@/lib/slugify';
 import { useCardBlob, useDebounced } from '@/lib/client/useCardBlob';
+import { displayWidthFor, useDevicePixelRatio } from '@/lib/client/display';
 import { track } from '@/lib/share';
 import type { FrameId, Media, OverallMode } from '@/lib/types';
 import styles from './editor.module.css';
@@ -40,16 +41,17 @@ const STEPS: { id: Step; label: string }[] = [
 ];
 
 /**
- * Largura em que os previews da tela são rasterizados.
+ * Larguras em CSS que os previews ocupam na tela, por contexto.
  *
- * O card em tamanho real passa de 1 MB, e a cada ajuste de slider o navegador
- * baixaria isso de novo para mostrar uma imagem de 200 a 400px. A composição é
- * a mesma — só a rasterização é menor —, então o preview continua fiel.
+ * A largura real pedida ao renderizador sai daqui multiplicada pela densidade
+ * da tela — servir menos pixels do que o dispositivo usa borra o texto pequeno
+ * e transforma a borda do painel numa faixa visível.
  *
- * O arquivo que vai ser compartilhado NUNCA usa esta largura: ele vem de
- * `shareQuery`, sem o parâmetro.
+ * O arquivo que vai ser compartilhado NUNCA passa por isso: ele vem de
+ * `shareQuery`, sem o parâmetro, em tamanho real.
  */
-const DISPLAY_WIDTH = 640;
+const CSS_PAINEL = 400;
+const CSS_PREVIEW_EMBUTIDO = 220;
 
 /** Estatísticas nascem na nota geral: ninguém precisa preencher seis sliders. */
 function seedStats(media: Media, overall: number): EditableStat[] {
@@ -155,6 +157,8 @@ export function Editor() {
     [frame, overall, scaleMax, media, caption, author, stats, artworkUrl],
   );
 
+  const dpr = useDevicePixelRatio();
+
   /** Debounce de 250ms: o preview acompanha o slider sem render por pixel. */
   const settled = useDebounced(previewSource, 250);
 
@@ -170,9 +174,9 @@ export function Editor() {
         ...settled,
         format: shareFormat,
         showSafeArea,
-        displayWidth: DISPLAY_WIDTH,
+        displayWidth: displayWidthFor(CSS_PREVIEW_EMBUTIDO, dpr, shareFormat),
       }),
-    [settled, shareFormat, showSafeArea],
+    [settled, shareFormat, showSafeArea, dpr],
   );
 
   const editorPreviewQuery = useMemo(
@@ -181,9 +185,9 @@ export function Editor() {
         ...settled,
         format: 'story',
         showSafeArea,
-        displayWidth: DISPLAY_WIDTH,
+        displayWidth: displayWidthFor(CSS_PREVIEW_EMBUTIDO, dpr, 'story'),
       }),
-    [settled, showSafeArea],
+    [settled, showSafeArea, dpr],
   );
 
   // Só pré-gera quando o usuário já está perto de compartilhar.
@@ -210,14 +214,24 @@ export function Editor() {
    * escolheu nada, e o card ao vivo daí em diante. No mobile ele não existe —
    * o preview continua embutido nos passos, para não custar altura de tela.
    */
+  /** O painel do desktop é maior que os previews embutidos: pede mais pixels. */
+  const paneEditorQuery = useMemo(
+    () =>
+      buildPreviewQuery({
+        ...settled,
+        format: step === 'share' ? shareFormat : 'story',
+        showSafeArea,
+        displayWidth: displayWidthFor(CSS_PAINEL, dpr, step === 'share' ? shareFormat : 'story'),
+      }),
+    [settled, showSafeArea, dpr, step, shareFormat],
+  );
+
   const paneQuery = media
-    ? step === 'share'
-      ? shareDisplayQuery
-      : editorPreviewQuery
+    ? paneEditorQuery
     : buildPreviewQuery({
         ...DEMO_PREVIEW_SOURCE,
         format: 'story',
-        displayWidth: DISPLAY_WIDTH,
+        displayWidth: displayWidthFor(CSS_PAINEL, dpr, 'story'),
       });
 
   const paneFormat = media && step === 'share' ? shareFormat : 'story';
