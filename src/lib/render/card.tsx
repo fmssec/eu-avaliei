@@ -378,7 +378,13 @@ export function CardArt(input: CardRenderInput): ReactElement {
               label="PÔSTER"
               style={{ position: 'absolute', top: 0, left: 0, width, height }}
             />
-            {/* Topo: o suficiente para a nota grande se destacar da arte. */}
+            {/* Um degradê só, cobrindo o card inteiro.
+                Antes eram dois elementos — um no topo, outro na base — e a
+                aresta de cada um caía no meio da arte. Não produzia degrau de
+                brilho, e por isso a varredura por diferença não achava: o que
+                mudava era a INCLINAÇÃO da curva (0,43 por linha acima da
+                aresta, 0,17 abaixo). O olho lê mudança brusca de inclinação
+                como linha — bandas de Mach. Sem aresta, não há o que ler. */}
             <div
               style={{
                 ...row,
@@ -386,31 +392,9 @@ export function CardArt(input: CardRenderInput): ReactElement {
                 top: 0,
                 left: 0,
                 width,
-                height: Math.round(height * 0.26),
+                height,
                 backgroundImage:
-                  'linear-gradient(to bottom,rgba(8,8,10,0.88) 0%,rgba(8,8,10,0.55) 55%,rgba(8,8,10,0) 100%)',
-              }}
-            />
-            {/* Base: escurece progressivamente até o rodapé.
-                Posicionado por `top` calculado, e não por `bottom: 0`: aqui
-                dentro do fragmento o Satori não resolvia `bottom` e o degradê
-                não pintava, enquanto `top: 0` do scrim acima funcionava. Na
-                variante Pôster, onde o scrim é filho direto da raiz, `bottom`
-                funciona — então é a combinação com o fragmento que falha. */}
-            <div
-              style={{
-                ...row,
-                position: 'absolute',
-                top: height - Math.round(height * 0.62),
-                left: 0,
-                width,
-                height: Math.round(height * 0.62),
-                // Três paradas, não cinco: o parser de gradiente do Satori
-                // descarta em silêncio gradientes mais longos — o degradê
-                // simplesmente não pintava, e o pôster ia a brilho pleno até
-                // a borda de baixo.
-                backgroundImage:
-                  'linear-gradient(to top,rgba(8,8,10,0.62) 18%,rgba(8,8,10,0.24) 62%,rgba(8,8,10,0))',
+                  'linear-gradient(to bottom,rgba(8,8,10,0.86) 0%,rgba(8,8,10,0.32) 14%,rgba(8,8,10,0) 30%,rgba(8,8,10,0) 44%,rgba(8,8,10,0.30) 62%,rgba(8,8,10,0.78) 82%,rgba(8,8,10,0.96) 100%)',
               }}
             />
           </>
