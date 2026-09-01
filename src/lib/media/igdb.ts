@@ -17,7 +17,9 @@ import { normalizePopularity } from './ranking';
 
 const AUTH = 'https://id.twitch.tv/oauth2/token';
 const API = 'https://api.igdb.com/v4';
-const IMAGES = 'https://images.igdb.com/igdb/image/upload/t_cover_big';
+// t_1080p (810×1080). O t_cover_big padrão tem 264×352 — esticado para o card
+// de 1080 de largura vira ampliação de 4×, e o resultado é visivelmente mole.
+const IMAGES = 'https://images.igdb.com/igdb/image/upload/t_1080p';
 
 export function igdbConfigured(): boolean {
   return Boolean(process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET);

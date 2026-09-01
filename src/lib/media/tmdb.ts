@@ -4,7 +4,8 @@ import { proxiedArtwork } from './artwork';
 import { normalizePopularity } from './ranking';
 
 const API = 'https://api.themoviedb.org/3';
-const IMG = 'https://image.tmdb.org/t/p/w780';
+// w1280: o card tem 1080 de largura, e w780 obrigaria a ampliar.
+const IMG = 'https://image.tmdb.org/t/p/w1280';
 const LANG = 'pt-BR';
 
 interface TmdbResult {

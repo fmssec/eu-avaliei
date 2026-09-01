@@ -67,7 +67,10 @@ async function toSvg(req: RenderRequest, spec: FormatSpec): Promise<string> {
   const [baseW, baseH] = spec.base;
   const [fonts, artwork] = await Promise.all([
     loadFonts(),
-    artworkDataUri(req.artworkUrl ?? null, Math.round(baseW * 2)),
+    // A arte precisa de tantos pixels quanto a saída, não quanto a composição:
+    // reduzir para o dobro da base (720) e depois rasterizar em 1080 era uma
+    // ampliação de 1,5× imposta por nós, somada à da origem.
+    artworkDataUri(req.artworkUrl ?? null, spec.width),
   ]);
 
   return satori(
