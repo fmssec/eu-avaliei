@@ -276,9 +276,12 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--muted);
-  width: 68px;
+  width: 92px;
   flex: none;
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .statValue {

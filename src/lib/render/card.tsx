@@ -488,7 +488,15 @@ export function CardArt(input: CardRenderInput): ReactElement {
                     gap: 6,
                   }}
                 >
-                  <div style={{ ...mono(9, 1.08, COLOR.inkDim), textTransform: 'uppercase' }}>
+                  <div
+                    style={{
+                      ...mono(9, 1.08, COLOR.inkDim),
+                      textTransform: 'uppercase',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {s.label}
                   </div>
                   <div
@@ -783,7 +791,15 @@ export function CardArt(input: CardRenderInput): ReactElement {
                     gap: 6,
                   }}
                 >
-                  <div style={{ ...mono(7, 1.0, COLOR.inkDim), textTransform: 'uppercase' }}>
+                  <div
+                    style={{
+                      ...mono(7, 1.0, COLOR.inkDim),
+                      textTransform: 'uppercase',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {s.label}
                   </div>
                   <div
