@@ -80,7 +80,10 @@ export function deepLink(
 ): string {
   switch (channel) {
     case 'whatsapp':
-      return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+      // \n\n, não espaço: o link precisa cair numa linha própria, abaixo de
+      // todo o texto — grudado no fim da última linha ele lê como parte da
+      // frase, não como o convite separado que é.
+      return `https://wa.me/?text=${encodeURIComponent(`${text}\n\n${url}`)}`;
     case 'x':
       return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     case 'telegram':

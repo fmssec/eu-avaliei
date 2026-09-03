@@ -45,7 +45,6 @@ export const LEVELS = [
     faixa: '9,0 – 10',
     edge: '#EB9AFD', // oklch(0.80 0.16 320)
     plate: 'linear-gradient(160deg,#1A1024 0%,#0C0B10 60%)',
-    ornament: 'linear-gradient(135deg,#EB9AFD,#00D2E5)',
   },
   {
     id: 'ouro',
@@ -54,7 +53,6 @@ export const LEVELS = [
     faixa: '8,0 – 8,9',
     edge: '#E4B750', // oklch(0.80 0.13 85)
     plate: 'linear-gradient(160deg,#1A160D 0%,#0D0C0A 60%)',
-    ornament: '#E4B750',
   },
   {
     id: 'prata',
@@ -63,7 +61,6 @@ export const LEVELS = [
     faixa: '7,0 – 7,9',
     edge: '#BBC5D1', // oklch(0.82 0.02 250)
     plate: 'linear-gradient(160deg,#14161A 0%,#0C0C0E 60%)',
-    ornament: '#BBC5D1',
   },
   {
     id: 'bronze',
@@ -72,7 +69,6 @@ export const LEVELS = [
     faixa: '5,0 – 6,9',
     edge: '#BB7B4E', // oklch(0.64 0.10 55)
     plate: 'linear-gradient(160deg,#181310 0%,#0D0B0A 60%)',
-    ornament: '#BB7B4E',
   },
   {
     id: 'comum',
@@ -81,7 +77,6 @@ export const LEVELS = [
     faixa: '0,0 – 4,9',
     edge: '#8F9298', // oklch(0.66 0.01 260)
     plate: '#101013',
-    ornament: 'rgba(244,241,234,0.14)',
   },
 ] as const;
 

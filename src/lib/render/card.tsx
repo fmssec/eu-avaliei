@@ -59,8 +59,8 @@ const col: CSSProperties = { display: 'flex', flexDirection: 'column' };
 
 /**
  * Satori não ignora chaves de estilo com valor `undefined` — ele tenta parsear
- * e quebra. Por isso a chapa e o ornamento viram cor OU gradiente, nunca as
- * duas chaves com uma delas vazia.
+ * e quebra. Por isso a chapa vira cor OU gradiente, nunca as duas chaves com
+ * uma delas vazia.
  */
 function fill(value: string): CSSProperties {
   return value.startsWith('linear-gradient') || value.startsWith('radial-gradient')
@@ -323,7 +323,7 @@ export function CardArt(input: CardRenderInput): ReactElement {
             ) : (
               <div style={mono(9, 1.08, 'rgba(0,0,0,0)')}> </div>
             )}
-            <div style={display(11, COLOR.ink, -0.01)}>Eu avaliei!</div>
+            <div style={display(11, COLOR.ink, -0.01)}>euavaliei.com.br</div>
           </div>
         </div>
         {input.showSafeArea ? <SafeArea width={width} height={height} /> : null}
@@ -418,26 +418,15 @@ export function CardArt(input: CardRenderInput): ReactElement {
               <div style={mono(9, 1.62, lvl.edge)}>{lvl.label}</div>
             </div>
           </div>
-          <div style={{ ...col, alignItems: 'flex-end', gap: 6 }}>
-            <div
-              style={{
-                ...mono(9, 1.44, COLOR.ink),
-                padding: '4px 7px',
-                border: `1px solid ${lvl.edge}`,
-                backgroundColor: 'rgba(8,8,10,0.65)',
-              }}
-            >
-              {input.categoryLabel}
-            </div>
-            <div
-              style={{
-                ...row,
-                width: 26,
-                height: 26,
-                border: `1px solid ${lvl.edge}`,
-                ...fill(lvl.ornament),
-              }}
-            />
+          <div
+            style={{
+              ...mono(9, 1.44, COLOR.ink),
+              padding: '4px 7px',
+              border: `1px solid ${lvl.edge}`,
+              backgroundColor: 'rgba(8,8,10,0.65)',
+            }}
+          >
+            {input.categoryLabel}
           </div>
         </div>
 
@@ -535,7 +524,7 @@ export function CardArt(input: CardRenderInput): ReactElement {
             ) : (
               <div style={mono(9, 1.08, 'rgba(0,0,0,0)')}> </div>
             )}
-            <div style={display(11, COLOR.ink, -0.01)}>Eu avaliei!</div>
+            <div style={display(11, COLOR.ink, -0.01)}>euavaliei.com.br</div>
           </div>
         </div>
         {input.showSafeArea ? <SafeArea width={width} height={height} /> : null}
@@ -647,6 +636,22 @@ export function CardArt(input: CardRenderInput): ReactElement {
                 </div>
               </div>
             ))}
+          </div>
+          <div
+            style={{
+              ...row,
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(244,241,234,0.18)',
+              paddingTop: 6,
+            }}
+          >
+            {input.author ? (
+              <div style={mono(8, 1.08, COLOR.muted)}>{input.author}</div>
+            ) : (
+              <div style={mono(8, 1.08, 'rgba(0,0,0,0)')}> </div>
+            )}
+            <div style={display(9, COLOR.ink, -0.01)}>euavaliei.com.br</div>
           </div>
         </div>
       </div>
@@ -799,6 +804,23 @@ export function CardArt(input: CardRenderInput): ReactElement {
           </div>
 
           <Caption text={input.caption} size={11} color={COLOR.inkSoft} />
+
+          <div
+            style={{
+              ...row,
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(244,241,234,0.18)',
+              paddingTop: 6,
+            }}
+          >
+            {input.author ? (
+              <div style={mono(8, 1.08, COLOR.inkDim)}>{input.author}</div>
+            ) : (
+              <div style={mono(8, 1.08, 'rgba(0,0,0,0)')}> </div>
+            )}
+            <div style={display(9, COLOR.ink, -0.01)}>euavaliei.com.br</div>
+          </div>
         </div>
       </div>
     );
@@ -837,7 +859,7 @@ export function CardArt(input: CardRenderInput): ReactElement {
             <div style={{ ...display(52, lvl.edge), lineHeight: 0.82 }}>{nota}</div>
             <div style={{ ...mono(8, 1.28, COLOR.muted2), paddingBottom: 6 }}>{lvl.label}</div>
           </div>
-          <div style={display(11, COLOR.ink, -0.01)}>Eu avaliei!</div>
+          <div style={display(11, COLOR.ink, -0.01)}>euavaliei.com.br</div>
         </div>
         <div style={{ ...col, gap: 3 }}>
           <Eyebrow size={8} color={lvl.edge} />
