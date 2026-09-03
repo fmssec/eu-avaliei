@@ -62,26 +62,31 @@ export function CatalogTile({
 
   return (
     <div className={styles.tile}>
-      <a className={styles.tileOpen} href={`/?abrir=${encodeURIComponent(rating.id)}`}>
-        {aindaResolvendoArte ? (
-          <div className={styles.tileSkeleton} aria-hidden />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className={styles.tileImg}
-            src={`/api/preview?${query}`}
-            alt={`${rating.title} — nota ${rating.overall}`}
-          />
-        )}
-      </a>
-      <button
-        type="button"
-        className={styles.tileRemove}
-        aria-label={`Remover ${rating.title} do catálogo`}
-        onClick={() => onApagar(rating.id)}
-      >
-        ×
-      </button>
+      <div className={styles.tileTitle} title={rating.title}>
+        {rating.title}
+      </div>
+      <div className={styles.tileCard}>
+        <a className={styles.tileOpen} href={`/?abrir=${encodeURIComponent(rating.id)}`}>
+          {aindaResolvendoArte ? (
+            <div className={styles.tileSkeleton} aria-hidden />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className={styles.tileImg}
+              src={`/api/preview?${query}`}
+              alt={`${rating.title} — nota ${rating.overall}`}
+            />
+          )}
+        </a>
+        <button
+          type="button"
+          className={styles.tileRemove}
+          aria-label={`Remover ${rating.title} do catálogo`}
+          onClick={() => onApagar(rating.id)}
+        >
+          ×
+        </button>
+      </div>
     </div>
   );
 }

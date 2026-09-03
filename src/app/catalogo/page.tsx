@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { CatalogoClient } from './CatalogoClient';
 
 export const metadata: Metadata = {
-  title: 'Meu catálogo · Eu avaliei!',
+  title: 'Minhas avaliações · Eu avaliei!',
   description: 'Tudo que você já avaliou, guardado neste aparelho.',
 };
 

@@ -20,6 +20,7 @@ import { displayWidthFor, useDevicePixelRatio } from '@/lib/client/display';
 import { track } from '@/lib/share';
 import {
   buscarAvaliacao,
+  contarAvaliacoes,
   idDaAvaliacao,
   salvarAvaliacao,
   type SavedRating,
@@ -81,6 +82,11 @@ export function Editor() {
   const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
 
   const [toast, setToast] = useState<string | null>(null);
+  const [totalAvaliacoes, setTotalAvaliacoes] = useState(0);
+
+  useEffect(() => {
+    void contarAvaliacoes().then(setTotalAvaliacoes);
+  }, []);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -243,6 +249,7 @@ export function Editor() {
         }
       }
       await salvarAvaliacao(rating);
+      void contarAvaliacoes().then(setTotalAvaliacoes);
     })();
     // Salva o estado do momento em que a pessoa chegou ao compartilhamento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -339,7 +346,15 @@ export function Editor() {
           <span className={styles.wordmark}>Eu avaliei!</span>
           <span className={styles.tagline}>DA BUSCA AO CARD EM MENOS DE 30 SEGUNDOS</span>
         </a>
-        <ThemeToggle />
+        <div className={styles.headerActions}>
+          <a className={styles.avaliacoesBtn} href="/catalogo">
+            MINHAS AVALIAÇÕES
+            {totalAvaliacoes > 0 ? (
+              <span className={styles.avaliacoesCount}>{totalAvaliacoes}</span>
+            ) : null}
+          </a>
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className={styles.workspace}>

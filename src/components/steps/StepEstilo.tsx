@@ -188,7 +188,7 @@ export function StepEstilo({
 
       <div className={styles.spacer} />
       <button type="button" className={styles.primary} onClick={onNext}>
-        COMPARTILHAR
+        AVANÇAR
       </button>
     </section>
   );

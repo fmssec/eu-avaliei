@@ -112,6 +112,13 @@
   padding: 7px 12px;
 }
 
+.vazioFiltro {
+  font-size: 14px;
+  color: var(--muted-2);
+  text-align: center;
+  padding: 32px 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
@@ -126,6 +133,23 @@
 }
 
 .tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tileTitle {
+  font-family: var(--font-display), sans-serif;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tileCard {
   position: relative;
 }
 

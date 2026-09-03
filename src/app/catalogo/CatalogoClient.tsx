@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import editorStyles from '@/components/editor.module.css';
 import styles from './catalogo.module.css';
 import { CatalogTile } from './CatalogTile';
-import { CATEGORY_PLURAL } from '@/lib/categories';
+import { CATEGORIES, CATEGORY_PLURAL } from '@/lib/categories';
 import { formatScore } from '@/lib/scale';
 import { useDevicePixelRatio } from '@/lib/client/display';
 import {
@@ -43,12 +43,15 @@ export function CatalogoClient() {
     setTimeout(() => setToast((atual) => (atual === mensagem ? null : atual)), 2600);
   }
 
+  // Lista as 5 categorias sempre, mesmo com 0 itens — o filtro é uma escolha
+  // estável do que o app cobre, não algo que aparece e some conforme os tipos
+  // já avaliados mudam.
   const categorias = useMemo(() => {
-    const contagem = new Map<Category, number>();
+    const contagem = new Map<Category, number>(CATEGORIES.map((c) => [c, 0]));
     for (const item of itens ?? []) {
       contagem.set(item.category, (contagem.get(item.category) ?? 0) + 1);
     }
-    return [...contagem.entries()].sort((a, b) => b[1] - a[1]);
+    return CATEGORIES.map((c) => [c, contagem.get(c) ?? 0] as const);
   }, [itens]);
 
   const visiveis = useMemo(() => {
@@ -138,31 +141,27 @@ export function CatalogoClient() {
           </div>
 
           <div className={styles.controles}>
-            {categorias.length > 1 ? (
-              <div className={styles.filtros} role="group" aria-label="Filtrar por categoria">
+            <div className={styles.filtros} role="group" aria-label="Filtrar por tipo de mídia">
+              <button
+                type="button"
+                aria-pressed={filtro === 'todos'}
+                className={`${styles.chip} ${filtro === 'todos' ? styles.chipOn : ''}`}
+                onClick={() => setFiltro('todos')}
+              >
+                TUDO {itens.length}
+              </button>
+              {categorias.map(([cat, n]) => (
                 <button
+                  key={cat}
                   type="button"
-                  aria-pressed={filtro === 'todos'}
-                  className={`${styles.chip} ${filtro === 'todos' ? styles.chipOn : ''}`}
-                  onClick={() => setFiltro('todos')}
+                  aria-pressed={filtro === cat}
+                  className={`${styles.chip} ${filtro === cat ? styles.chipOn : ''}`}
+                  onClick={() => setFiltro(cat)}
                 >
-                  TUDO {itens.length}
+                  {CATEGORY_PLURAL[cat]} {n}
                 </button>
-                {categorias.map(([cat, n]) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    aria-pressed={filtro === cat}
-                    className={`${styles.chip} ${filtro === cat ? styles.chipOn : ''}`}
-                    onClick={() => setFiltro(cat)}
-                  >
-                    {CATEGORY_PLURAL[cat]} {n}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <span />
-            )}
+              ))}
+            </div>
 
             {visiveis.length > 1 ? (
               <div
@@ -191,6 +190,12 @@ export function CatalogoClient() {
               </div>
             ) : null}
           </div>
+
+          {visiveis.length === 0 && filtro !== 'todos' ? (
+            <p className={styles.vazioFiltro}>
+              Nenhum item avaliado em {CATEGORY_PLURAL[filtro].toLowerCase()} ainda.
+            </p>
+          ) : null}
 
           <div className={styles.grid}>
             {visiveis.map((item) => (
