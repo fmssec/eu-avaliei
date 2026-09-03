@@ -53,7 +53,7 @@ const OG_IMAGE =
   '/api/preview?f=og&fr=ficha&o=8.8&sm=10&t=The+Last+of+Us&cr=Naughty+Dog&y=2013' +
   '&cat=game&cap=joguei+em+2013+e+ainda+penso+na+%C3%BAltima+hora&a=' +
   '&s=Gameplay%3A8.8%7EHist%C3%B3ria%3A9.8%7EArte%3A9.2%7ETrilha%3A9.5%7ERejogabilidade%3A7.4%7EPerformance%3A8.1' +
-  '&art=%2Fapi%2Fartwork%3Fsrc%3Dhttps%253A%252F%252Fimages.igdb.com%252Figdb%252Fimage%252Fupload%252Ft_cover_big%252Fco1r7f.jpg';
+  '&art=%2Fapi%2Fartwork%3Fsrc%3Dhttps%253A%252F%252Fimages.igdb.com%252Figdb%252Fimage%252Fupload%252Ft_1080p%252Fco1r7f.jpg';
 
 const TITULO = 'Eu avaliei!';
 const DESCRICAO =

@@ -15,6 +15,15 @@ RUN npm ci
 FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# A home é uma página estática, então a URL absoluta do og:image é fixada no
+# BUILD, não em runtime. Sem passar isto, ela apontaria para localhost em
+# produção e o preview de link quebraria — sem erro nenhum, que é o pior tipo
+# de falha. O Render converte as variáveis do serviço em build args
+# automaticamente; fora dele, o padrão local serve.
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -43,15 +52,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # renderizador carrega as fontes TTF.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Store em arquivo do MVP. Monte um volume aqui para os cards sobreviverem ao
-# recriar o container — sem ele, cada `docker compose up` começa do zero.
-RUN mkdir -p /app/.data && chown nextjs:nodejs /app/.data
-VOLUME ["/app/.data"]
-
 USER nextjs
 EXPOSE 3000
 
-HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/api/search?q=ab').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+# Aponta para /api/health, que não renderiza nada: num plano de CPU apertada,
+# um health check caro rouba a CPU de quem está usando — e mediria a coisa
+# errada, já que render lento não é serviço fora do ar.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]

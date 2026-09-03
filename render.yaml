@@ -1,0 +1,54 @@
+# Blueprint do Render.
+#
+# No painel: New → Blueprint → aponte para este repositório. Ele lê este
+# arquivo e cria o serviço já configurado; só as chaves de API precisam ser
+# digitadas, porque estão marcadas com `sync: false` e não vivem no git.
+#
+# Por que Docker e não o runtime Node do Render: o renderizador depende de
+# binários nativos (`@resvg/resvg-js` e `sharp`). Empacotadores de função os
+# perdem em silêncio — foi o que quebrou numa tentativa anterior em outra
+# plataforma. Um container roda a mesma imagem que roda localmente.
+
+services:
+  - type: web
+    name: eu-avaliei
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+
+    # Mais perto do Brasil que Oregon. Se o Blueprint recusar a região,
+    # troque para `oregon`, que é o padrão do Render.
+    region: ohio
+
+    # Responde sem renderizar nada. No plano gratuito, com 0,1 vCPU, um health
+    # check que gerasse um card competiria com quem está usando o site.
+    healthCheckPath: /api/health
+
+    autoDeploy: true
+
+    envVars:
+      # Precisa existir no BUILD, não só em runtime: a home é estática e a URL
+      # absoluta do og:image é fixada ali. O Render passa as variáveis do
+      # serviço como build args do Docker automaticamente.
+      #
+      # Comece com a URL que o Render gera (https://eu-avaliei.onrender.com) e
+      # troque para o domínio próprio depois de apontar o DNS — trocar exige um
+      # novo deploy, justamente porque o valor entra no build.
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+
+      # Filmes e séries. Sem isto, a busca traz só livros e jogos.
+      - key: MEDIA_PROVIDER
+        value: tmdb
+      - key: TMDB_API_KEY
+        sync: false
+
+      # Jogos. Sem as duas, jogos simplesmente não aparecem — nada quebra.
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+
+      # Livros (Open Library) não precisam de chave e ficam ligados por padrão.
+      - key: BOOKS_ENABLED
+        value: "true"

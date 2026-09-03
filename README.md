@@ -42,6 +42,15 @@ docker compose up --build
 
 Instala dependências e baixa as fontes dentro da imagem. Lê o mesmo `.env.local`.
 
+### Publicar no Render
+
+O repositório traz um [`render.yaml`](render.yaml): no painel do Render, **New → Blueprint**, aponte para o repositório e ele cria o serviço configurado. Só as chaves de API precisam ser digitadas — elas não vivem no git.
+
+Duas coisas que valem saber:
+
+- `NEXT_PUBLIC_SITE_URL` precisa existir no **build**, não só em runtime: a home é estática e a URL absoluta do `og:image` é fixada ali. O Render passa as variáveis do serviço como build args do Docker; trocar o valor exige um novo deploy.
+- O plano gratuito hiberna após 15 minutos parado, e o primeiro visitante espera o container subir. Um ping a cada 10 minutos evita isso e cabe nas 750 horas mensais do plano.
+
 ### Verificar antes de publicar
 
 ```bash
