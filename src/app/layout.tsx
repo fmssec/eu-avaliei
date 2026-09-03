@@ -62,7 +62,11 @@ const DESCRICAO =
 export const metadata: Metadata = {
   // Resolve as URLs relativas de og:image para absolutas, que é o que os
   // crawlers exigem. Em produção precisa ser o domínio real em HTTPS.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  // `||`, não `??`: a Vercel permite cadastrar a variável com valor vazio, e
+  // uma string vazia não é nullish — `??` a deixaria passar direto para
+  // `new URL('')`, que lança `ERR_INVALID_URL` e derruba o build inteiro
+  // (mesmo em rotas sem relação nenhuma com og:image, como `/_not-found`).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: TITULO,
   description: DESCRICAO,
   openGraph: {
