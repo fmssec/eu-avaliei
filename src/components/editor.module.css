@@ -822,3 +822,97 @@
     gap: 64px;
   }
 }
+
+/* ---- Histórico ---------------------------------------------------------
+ * As avaliações ficam no aparelho de quem avaliou. Aparecem na tela inicial
+ * porque é onde a pessoa chega quando volta — o valor de guardar é rever.
+ */
+
+.historico {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 18px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.historicoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.historicoItem {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.historicoAbrir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+}
+
+.historicoAbrir:hover,
+.historicoAbrir:focus-visible {
+  border-color: var(--muted-4);
+}
+
+.historicoNota {
+  font-family: var(--font-display), sans-serif;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+  width: 46px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.historicoTitulo {
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historicoApagar {
+  flex: none;
+  width: 34px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted-3);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.historicoApagar:hover {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.historicoAcoes {
+  display: flex;
+  gap: 6px;
+}
+
+.historicoAcoes .artButton {
+  flex: 1;
+}
+
+@media (min-width: 960px) {
+  .historicoLista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+}

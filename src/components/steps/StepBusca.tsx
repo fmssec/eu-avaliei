@@ -12,6 +12,8 @@ import {
   DEMO_STATS,
 } from '@/lib/media/demo';
 import type { Media } from '@/lib/types';
+import { Historico } from '../Historico';
+import type { SavedRating } from '@/lib/client/history';
 import styles from '../editor.module.css';
 
 const CATEGORY_LABEL: Record<Media['category'], string> = {
@@ -43,9 +45,13 @@ const COMO_FUNCIONA = [
 export function StepBusca({
   onPick,
   onDemo,
+  onAbrirHistorico,
+  onNotify,
 }: {
   onPick: (media: Media) => void;
   onDemo: () => void;
+  onAbrirHistorico: (rating: SavedRating) => void;
+  onNotify: (message: string) => void;
 }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Media[]>([]);
@@ -183,6 +189,8 @@ export function StepBusca({
             MEXER NESTE EXEMPLO
           </button>
           <div className={styles.footNote}>OU BUSQUE UM TÍTULO ACIMA</div>
+
+          <Historico onAbrir={onAbrirHistorico} onNotify={onNotify} />
         </div>
       )}
     </section>

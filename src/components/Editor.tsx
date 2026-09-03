@@ -18,6 +18,7 @@ import { slugify } from '@/lib/slugify';
 import { useCardBlob, useDebounced } from '@/lib/client/useCardBlob';
 import { displayWidthFor, useDevicePixelRatio } from '@/lib/client/display';
 import { track } from '@/lib/share';
+import { idDaAvaliacao, salvarAvaliacao, type SavedRating } from '@/lib/client/history';
 import type { FrameId, Media, OverallMode } from '@/lib/types';
 import styles from './editor.module.css';
 import { StepBusca } from './steps/StepBusca';
@@ -199,13 +200,73 @@ export function Editor() {
   );
 
   /**
-   * O card não é salvo: ele existe enquanto está sendo feito, e vira a imagem
-   * que a pessoa leva embora. O que registramos é só o evento, para saber
-   * quantos cards viram compartilhamento de fato.
+   * Nada do card vai para o servidor. O que fica é o histórico, no aparelho de
+   * quem avaliou — e o evento agregado, para saber quantos cards viram
+   * compartilhamento de fato.
+   *
+   * A arte própria é guardada como Blob junto da avaliação: o link do upload
+   * é cache de sessão e expira, então salvar só a URL perderia a imagem.
    */
   useEffect(() => {
-    if (step === 'share' && media) track('created', null, shareFormat, media.category);
-  }, [step, media, shareFormat]);
+    if (step !== 'share' || !media) return;
+    track('created', null, shareFormat, media.category);
+
+    void (async () => {
+      const rating: SavedRating = {
+        id: idDaAvaliacao(media.externalId),
+        createdAt: new Date().toISOString(),
+        externalId: media.externalId,
+        title: media.title,
+        creator: media.creator,
+        year: media.year,
+        category: media.category,
+        overall,
+        scaleMax,
+        stats: stats.map((st) => ({ label: st.label, value: st.value })),
+        frame,
+        caption,
+        author,
+        artworkUrl: media.artworkUrl,
+      };
+
+      if (artworkUrl) {
+        try {
+          rating.artworkBlob = await (await fetch(artworkUrl)).blob();
+        } catch {
+          // Sem a imagem, a avaliação ainda vale a pena guardar.
+        }
+      }
+      await salvarAvaliacao(rating);
+    })();
+    // Salva o estado do momento em que a pessoa chegou ao compartilhamento.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, media]);
+
+  /** Reabre uma avaliação do histórico para rever, ajustar ou compartilhar de novo. */
+  const abrirDoHistorico = useCallback((r: SavedRating) => {
+    setMedia({
+      id: r.externalId,
+      source: 'mock',
+      externalId: r.externalId,
+      category: r.category,
+      title: r.title,
+      creator: r.creator,
+      year: r.year,
+      artworkUrl: r.artworkUrl,
+      fetchedAt: r.createdAt,
+    });
+    setStats(r.stats.map((st) => ({ ...st })));
+    setOverall(r.overall);
+    setScaleMax(r.scaleMax);
+    setFrame(r.frame);
+    setCaption(r.caption);
+    setAuthor(r.author);
+    // A arte própria volta como URL de objeto: ela vive no aparelho, não no
+    // servidor, então não há link de upload para reusar.
+    setArtworkUrl(r.artworkBlob ? URL.createObjectURL(r.artworkBlob) : null);
+    setMode('manual');
+    setStep('estilo');
+  }, []);
 
   const level = levelFor(overall);
 
@@ -265,7 +326,9 @@ export function Editor() {
         </aside>
 
         <div className={styles.controls}>
-          {step === 'busca' ? <StepBusca onPick={pickMedia} onDemo={startDemo} /> : null}
+          {step === 'busca' ? (
+            <StepBusca onPick={pickMedia} onDemo={startDemo} onAbrirHistorico={abrirDoHistorico} onNotify={notify} />
+          ) : null}
 
           {step === 'nota' && media ? (
         <StepNota
