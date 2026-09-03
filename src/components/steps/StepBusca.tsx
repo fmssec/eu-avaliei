@@ -12,17 +12,10 @@ import {
   DEMO_STATS,
 } from '@/lib/media/demo';
 import type { Media } from '@/lib/types';
-import { Historico } from '../Historico';
+import { CATEGORY_LABEL } from '@/lib/categories';
+import { Catalogo } from '../Catalogo';
 import type { SavedRating } from '@/lib/client/history';
 import styles from '../editor.module.css';
-
-const CATEGORY_LABEL: Record<Media['category'], string> = {
-  movie: 'FILME',
-  series: 'SÉRIE',
-  game: 'JOGO',
-  book: 'LIVRO',
-  album: 'ÁLBUM',
-};
 
 /** O que cada passo faz, em uma linha. Explica o produto sem exigir leitura. */
 const COMO_FUNCIONA = [
@@ -45,12 +38,12 @@ const COMO_FUNCIONA = [
 export function StepBusca({
   onPick,
   onDemo,
-  onAbrirHistorico,
+  onAbrirCatalogo,
   onNotify,
 }: {
   onPick: (media: Media) => void;
   onDemo: () => void;
-  onAbrirHistorico: (rating: SavedRating) => void;
+  onAbrirCatalogo: (rating: SavedRating) => void;
   onNotify: (message: string) => void;
 }) {
   const [query, setQuery] = useState('');
@@ -190,7 +183,7 @@ export function StepBusca({
           </button>
           <div className={styles.footNote}>OU BUSQUE UM TÍTULO ACIMA</div>
 
-          <Historico onAbrir={onAbrirHistorico} onNotify={onNotify} />
+          <Catalogo onAbrir={onAbrirCatalogo} onNotify={onNotify} />
         </div>
       )}
     </section>

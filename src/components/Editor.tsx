@@ -242,8 +242,8 @@ export function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, media]);
 
-  /** Reabre uma avaliação do histórico para rever, ajustar ou compartilhar de novo. */
-  const abrirDoHistorico = useCallback((r: SavedRating) => {
+  /** Reabre um item do catálogo para rever, ajustar ou compartilhar de novo. */
+  const abrirDoCatalogo = useCallback((r: SavedRating) => {
     setMedia({
       id: r.externalId,
       source: 'mock',
@@ -327,7 +327,7 @@ export function Editor() {
 
         <div className={styles.controls}>
           {step === 'busca' ? (
-            <StepBusca onPick={pickMedia} onDemo={startDemo} onAbrirHistorico={abrirDoHistorico} onNotify={notify} />
+            <StepBusca onPick={pickMedia} onDemo={startDemo} onAbrirCatalogo={abrirDoCatalogo} onNotify={notify} />
           ) : null}
 
           {step === 'nota' && media ? (
@@ -410,7 +410,9 @@ export function Editor() {
 
       <footer className={styles.footer}>
         <span>DESENVOLVIDO POR FZ</span>
-        <span>SEM LOGIN, SEM CADASTRO</span>
+        <a className={styles.footerLink} href="/sobre">
+          CÓDIGO ABERTO · COMO RODAR
+        </a>
       </footer>
 
       {toast ? (

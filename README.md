@@ -2,7 +2,7 @@
 
 Avalie um filme, série, jogo ou livro e receba **uma imagem pronta para postar**. Sem login, sem cadastro, em menos de 30 segundos.
 
-Não é tracker nem catálogo. Trackers registram o que você consumiu; este resolve a outra metade — transformar a nota numa imagem que fique boa em Story, em grupo de WhatsApp e em post no X, cada um com formato e peso próprios.
+Cada avaliação também entra no seu catálogo pessoal — sem conta, sem servidor: fica guardado no seu navegador, neste aparelho. Não é rede social: sem perfil público, sem feed, sem seguidores. O catálogo é seu; a imagem é o que você compartilha.
 
 ---
 
@@ -42,6 +42,8 @@ docker compose up --build
 
 Instala dependências e baixa as fontes dentro da imagem. Lê o mesmo `.env.local`.
 
+O site publicado também traz essas instruções em `/sobre` — quem chega pelo card compartilhado encontra o caminho para rodar a própria instância sem precisar ir ao GitHub.
+
 ### Publicar no Render
 
 O repositório traz um [`render.yaml`](render.yaml): no painel do Render, **New → Blueprint**, aponte para o repositório e ele cria o serviço configurado. Só as chaves de API precisam ser digitadas — elas não vivem no git.
@@ -68,7 +70,7 @@ Confere peso de cada formato contra o teto do destino, ordem das meta tags no `<
 - **Moldura pela nota**: cinco faixas de raridade, de Comum a Especial.
 - **Arte própria**: anexar arquivo ou colar link no lugar da capa da base.
 - **Quatro formatos**: Story 1080×1920, quadrado 1080×1080, preview de link 1200×630, X 1600×900.
-- **Histórico no aparelho**, com exportar e importar.
+- **Catálogo pessoal no aparelho**, com filtro por categoria, ordenação por nota e exportar/importar.
 - **Tema claro e escuro**, mais o modo que segue o sistema.
 
 ---
@@ -83,7 +85,7 @@ O preview do editor **é** esse renderizador: a `<img>` aponta para `/api/previe
 
 ### Nada é guardado no servidor
 
-O card existe durante a criação e vira a imagem que você leva. As avaliações ficam no **IndexedDB do seu navegador**.
+O card existe durante a criação e vira a imagem que você leva. O que fica depois é o seu catálogo — título, nota, eixos e a arte, no **IndexedDB do seu navegador**, com filtro por categoria e ordenação por nota.
 
 Consequência: o link de compartilhamento aponta para o site, não para uma página por card. Pelo caminho principal — a share sheet do celular — a imagem viaja como arquivo e chega inteira. Pelos deep links de desktop, que só aceitam texto, a imagem é anexada à mão com os botões de copiar ou baixar.
 
@@ -149,7 +151,8 @@ src/lib/render/index.ts    satori → resvg → sharp
 src/lib/media/             busca federada e ranqueamento por relevância
 src/lib/share.ts           a cascata de compartilhamento
 src/lib/net/safe-fetch.ts  busca de URL do usuário, protegida contra SSRF
-src/lib/client/history.ts  histórico no IndexedDB
+src/lib/client/history.ts  catálogo pessoal no IndexedDB
+src/lib/categories.ts      rótulos de categoria compartilhados
 src/app/api/               preview, busca, uploads, eventos, proxy de arte
 ```
 

@@ -7,6 +7,7 @@ import type { Category, FrameId } from '../types';
 import { artworkDataUri } from './artwork';
 import { CardArt } from './card';
 import { loadFonts } from './fonts';
+import { CATEGORY_LABEL } from '../categories';
 
 /**
  * Renderizador único, server-side, consumido por todos os canais (spec §4.1).
@@ -44,14 +45,6 @@ export interface RenderResult {
   width: number;
   height: number;
 }
-
-const CATEGORY_LABEL: Record<Category, string> = {
-  movie: 'FILME',
-  series: 'SÉRIE',
-  game: 'JOGO',
-  book: 'LIVRO',
-  album: 'ÁLBUM',
-};
 
 /**
  * Degraus de qualidade para caber no teto de bytes do destino.

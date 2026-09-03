@@ -823,12 +823,13 @@
   }
 }
 
-/* ---- Histórico ---------------------------------------------------------
- * As avaliações ficam no aparelho de quem avaliou. Aparecem na tela inicial
- * porque é onde a pessoa chega quando volta — o valor de guardar é rever.
+
+/* ---- Catálogo ----------------------------------------------------------
+ * O que a pessoa já consumiu e avaliou, neste aparelho. Fica na tela inicial
+ * porque é onde ela chega quando volta — guardar só vale se der para rever.
  */
 
-.historico {
+.catalogo {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -837,19 +838,46 @@
   border-top: 1px solid var(--line);
 }
 
-.historicoLista {
+.catalogoFiltros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.catalogoChip {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  border: 1px solid var(--line-3);
+  background: transparent;
+  padding: 7px 10px;
+}
+
+.catalogoChip:hover {
+  color: var(--ink);
+  border-color: var(--muted-4);
+}
+
+.catalogoChipOn {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.catalogoLista {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.historicoItem {
+.catalogoItem {
   display: flex;
   align-items: stretch;
   gap: 6px;
 }
 
-.historicoAbrir {
+.catalogoAbrir {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -861,12 +889,12 @@
   text-align: left;
 }
 
-.historicoAbrir:hover,
-.historicoAbrir:focus-visible {
+.catalogoAbrir:hover,
+.catalogoAbrir:focus-visible {
   border-color: var(--muted-4);
 }
 
-.historicoNota {
+.catalogoNota {
   font-family: var(--font-display), sans-serif;
   font-size: 21px;
   letter-spacing: -0.03em;
@@ -875,7 +903,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.historicoTitulo {
+.catalogoTitulo {
   font-weight: 600;
   font-size: 17px;
   line-height: 1.1;
@@ -885,7 +913,7 @@
   white-space: nowrap;
 }
 
-.historicoApagar {
+.catalogoApagar {
   flex: none;
   width: 34px;
   font-size: 20px;
@@ -895,24 +923,33 @@
   background: var(--surface);
 }
 
-.historicoApagar:hover {
+.catalogoApagar:hover {
   color: var(--warn);
   border-color: var(--warn);
 }
 
-.historicoAcoes {
+.catalogoAcoes {
   display: flex;
   gap: 6px;
 }
 
-.historicoAcoes .artButton {
+.catalogoAcoes .artButton {
   flex: 1;
 }
 
 @media (min-width: 960px) {
-  .historicoLista {
+  .catalogoLista {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
   }
+}
+
+.footerLink {
+  color: var(--muted-4);
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  color: var(--gold);
 }

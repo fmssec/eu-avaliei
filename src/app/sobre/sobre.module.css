@@ -1,0 +1,165 @@
+/* Página de "sobre e como rodar". Usa os mesmos tokens do editor. */
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 20px calc(48px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100dvh;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--gold);
+}
+
+.voltar {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  text-decoration: none;
+}
+
+.voltar:hover {
+  color: var(--ink);
+}
+
+.titulo {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.subtitulo {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+}
+
+.bloco {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.texto {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 10px;
+  font-weight: 500;
+}
+
+.texto:last-child {
+  margin-bottom: 0;
+}
+
+.codigo {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  padding: 14px 16px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+}
+
+.inline {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.88em;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.tabela {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.linha {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-left: 2px solid var(--line-3);
+  padding-left: 12px;
+}
+
+.celulaChave {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--muted-3);
+  text-transform: uppercase;
+}
+
+.celula {
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--muted-4);
+}
+
+.rodape a {
+  color: var(--muted-4);
+  text-decoration: none;
+}
+
+.rodape a:hover {
+  color: var(--gold);
+}
+
+@media (min-width: 720px) {
+  .linha {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .celulaChave {
+    width: 148px;
+    flex: none;
+    padding-top: 4px;
+  }
+}
