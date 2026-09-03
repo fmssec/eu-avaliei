@@ -6,10 +6,12 @@ const nextConfig = {
   serverExternalPackages: ['@resvg/resvg-js', 'sharp', 'satori'],
   reactStrictMode: true,
 
-  // Emite .next/standalone — o servidor mais as dependências efetivamente
-  // rastreadas. É o que a imagem Docker copia; sem isso a imagem carregaria o
-  // node_modules inteiro. Não afeta `next dev` nem `next start` locais.
-  output: 'standalone',
+  // `standalone` emite o servidor mais as dependências rastreadas — é o que a
+  // imagem Docker copia, e sem isso ela carregaria o node_modules inteiro.
+  //
+  // Mas serve só para self-hosting: a Vercel faz o próprio empacotamento e
+  // não quer esta opção. A variável que ela define em todo build decide.
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
 
   /**
    * Crawlers que recebem a metadata de forma bloqueante, com as tags `og:`

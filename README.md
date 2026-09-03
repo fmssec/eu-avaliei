@@ -22,7 +22,7 @@ npm run dev
 
 Abre em `http://localhost:3000` e funciona sem nenhuma chave de API.
 
-`npm run fonts` baixa as fontes em TTF para `public/fonts/`. É obrigatório antes do primeiro render: o Satori não lê `woff2`. As fontes ficam fora do git, então em CI e deploy este passo vem antes do build.
+`npm run fonts` baixa as fontes em TTF para `public/fonts/` — o Satori não lê `woff2`, e elas ficam fora do git. O `npm run build` já faz isso sozinho, então em CI e deploy não há passo extra; rodar à parte só serve para o `npm run dev`.
 
 ### Com dados reais
 
