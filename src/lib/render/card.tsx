@@ -543,94 +543,278 @@ export function CardArt(input: CardRenderInput): ReactElement {
     );
   }
 
-  if (variant === 'square') {
-    const artW = Math.round(width * 0.425);
+  if (variant === 'square' && frame === 'poster') {
+    // Poster no quadrado: a mesma gramática do craque no story — arte em
+    // sangria total, um degradê só na base, texto direto sobre ele. Sem chapa
+    // translúcida própria: no poster, é o degradê que garante a leitura.
+    const pad = 16;
     return (
       <div
         style={{
-          ...row,
+          ...col,
+          position: 'relative',
           width,
           height,
+          backgroundColor: COLOR.plateDark,
+          border: `5px solid ${lvl.edge}`,
+          overflow: 'hidden',
           fontFamily: FONT.sans,
-          ...fill(lvl.plate),
-          border: `3px solid ${lvl.edge}`,
         }}
       >
         <Artwork
           src={input.artwork}
           label="PÔSTER"
-          style={{ width: artW, height: '100%', flexShrink: 0 }}
+          style={{ position: 'absolute', top: 0, left: 0, width, height }}
         />
-        <div style={{ ...col, flex: 1, padding: 16, gap: 10 }}>
-          <div style={{ ...row, alignItems: 'flex-end', gap: 8 }}>
-            <div style={{ ...display(62, lvl.edge), lineHeight: 0.82 }}>{nota}</div>
-            <div style={{ ...mono(8, 1.28, COLOR.muted2), paddingBottom: 6 }}>{lvl.label}</div>
+        <div
+          style={{
+            ...row,
+            position: 'absolute',
+            left: 0,
+            bottom: 0,
+            width,
+            height: Math.round(height * 0.66),
+            backgroundImage:
+              'linear-gradient(to top,#0B0B0C 10%,rgba(11,11,12,0.88) 46%,rgba(11,11,12,0) 100%)',
+          }}
+        />
+        <div
+          style={{
+            ...row,
+            position: 'absolute',
+            top: pad,
+            left: pad,
+            width: width - pad * 2,
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div
+            style={{
+              ...mono(8, 1.44, COLOR.ink),
+              backgroundColor: 'rgba(11,11,12,0.7)',
+              padding: '4px 7px',
+            }}
+          >
+            {input.categoryLabel}
           </div>
-          <div style={{ ...col, gap: 3 }}>
+          <div
+            style={{
+              ...mono(8, 1.44, lvl.edge),
+              backgroundColor: 'rgba(11,11,12,0.7)',
+              padding: '4px 7px',
+            }}
+          >
+            {lvl.label}
+          </div>
+        </div>
+        <div
+          style={{
+            ...col,
+            position: 'absolute',
+            left: pad,
+            bottom: pad,
+            width: width - pad * 2,
+            gap: 8,
+          }}
+        >
+          <div style={{ ...row, alignItems: 'flex-end', gap: 8 }}>
+            <div style={{ ...display(50, lvl.edge, -0.04), lineHeight: 0.8 }}>{nota}</div>
+            <div style={{ ...mono(8, 1.44, COLOR.muted2), paddingBottom: 6 }}>
+              {`/ ${input.scaleMax}`}
+            </div>
+          </div>
+          <div style={{ ...col, gap: 2 }}>
             <Eyebrow size={8} color={lvl.edge} />
             <div
               style={{
-                ...display(19, COLOR.ink, -0.02),
-                lineHeight: 1.02,
+                ...display(18, COLOR.ink, -0.02),
+                lineHeight: 1,
                 textTransform: 'uppercase',
               }}
             >
               {input.title}
             </div>
-            <div style={mono(9, 0.72, COLOR.muted2)}>{subtitle}</div>
+            <div style={mono(9, 0.8, COLOR.muted)}>{subtitle}</div>
+            <Caption text={input.caption} size={12} color={COLOR.inkSoft} />
           </div>
-          <div style={{ ...col, gap: 5, marginTop: 2 }}>
+          <div style={{ ...row, gap: 5 }}>
             {stats.map((s) => (
-              <div key={s.label} style={{ ...row, alignItems: 'center', gap: 8 }}>
-                <div
-                  style={{ ...mono(8, 0.8, COLOR.muted), width: 56, textTransform: 'uppercase' }}
-                >
-                  {s.label}
-                </div>
-                <div style={{ ...row, flex: 1 }}>
-                  <Bar value={s.value} edge={lvl.edge} />
-                </div>
-                <div
-                  style={{
-                    fontFamily: FONT.sans,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    color: COLOR.ink,
-                    width: 22,
-                    textAlign: 'right',
-                  }}
-                >
-                  {shown(s.value)}
+              <div key={s.label} style={{ ...col, flex: 1, gap: 3 }}>
+                <Column value={s.value} edge={lvl.edge} height={20} />
+                <div style={{ ...mono(6, 0.4, COLOR.muted2), textTransform: 'uppercase' }}>
+                  {abbreviate(s.label)}
                 </div>
               </div>
             ))}
-          </div>
-          <div style={{ ...col, marginTop: 'auto', gap: 8 }}>
-            <Caption text={input.caption} size={13} color={COLOR.inkSoft} />
-          </div>
-          <div
-            style={{
-              ...row,
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTop: `1px solid ${COLOR.line3}`,
-              paddingTop: 8,
-            }}
-          >
-            {input.author ? (
-              <div style={mono(8, 0.96, COLOR.muted2)}>{input.author}</div>
-            ) : (
-              <div style={mono(8, 0.96, 'rgba(0,0,0,0)')}> </div>
-            )}
-            <div style={display(10, COLOR.ink, -0.01)}>Eu avaliei!</div>
           </div>
         </div>
       </div>
     );
   }
 
+  if (variant === 'square') {
+    // Ficha: a mesma gramática do craque no story — arte em sangria total e
+    // uma chapa translúcida só sobre o bloco de texto, pôster ainda visível
+    // por baixo. Sem arte, a chapa da raridade preenche o quadrado inteiro.
+    const pad = 16;
+    const inner = width - pad * 2;
+    const hasArt = Boolean(input.artwork);
+    const panelPad = 10;
+    const platePad = 8;
+    const statGap = 10;
+    const statW = Math.floor((inner - panelPad * 2 - 2 - platePad * 2 - 2 - statGap) / 2);
+
+    return (
+      <div
+        style={{
+          ...col,
+          position: 'relative',
+          width,
+          height,
+          overflow: 'hidden',
+          fontFamily: FONT.sans,
+          ...fill(hasArt ? COLOR.plateDark : lvl.plate),
+          border: `3px solid ${lvl.edge}`,
+        }}
+      >
+        {hasArt ? (
+          <>
+            <Artwork
+              src={input.artwork}
+              label="PÔSTER"
+              style={{ position: 'absolute', top: 0, left: 0, width, height }}
+            />
+            <div
+              style={{
+                ...row,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width,
+                height,
+                backgroundImage:
+                  'linear-gradient(to bottom,rgba(8,8,10,0.82) 0%,rgba(8,8,10,0.28) 16%,rgba(8,8,10,0) 32%,rgba(8,8,10,0) 40%,rgba(8,8,10,0.34) 60%,rgba(8,8,10,0.80) 80%,rgba(8,8,10,0.96) 100%)',
+              }}
+            />
+          </>
+        ) : null}
+
+        <div
+          style={{
+            ...row,
+            position: 'absolute',
+            top: pad,
+            left: pad,
+            width: inner,
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 8,
+          }}
+        >
+          <div style={{ ...display(38, lvl.edge), lineHeight: 0.86 }}>{nota}</div>
+          <div
+            style={{
+              ...mono(8, 1.44, COLOR.ink),
+              padding: '3px 6px',
+              border: `1px solid ${lvl.edge}`,
+              backgroundColor: 'rgba(8,8,10,0.65)',
+            }}
+          >
+            {input.categoryLabel}
+          </div>
+        </div>
+
+        <div
+          style={{
+            ...col,
+            position: 'absolute',
+            bottom: pad,
+            left: pad,
+            width: inner,
+            padding: hasArt ? panelPad : 0,
+            gap: 8,
+            ...(hasArt
+              ? {
+                  backgroundColor: 'rgba(8,8,10,0.74)',
+                  border: '1px solid rgba(244,241,234,0.13)',
+                }
+              : {}),
+          }}
+        >
+          <div style={{ ...col, gap: 2 }}>
+            <Eyebrow size={8} color={lvl.edge} />
+            <div
+              style={{
+                ...display(17, COLOR.ink, -0.02),
+                lineHeight: 1.02,
+                textTransform: 'uppercase',
+              }}
+            >
+              {input.title}
+            </div>
+            <div style={mono(9, 0.8, COLOR.inkDim)}>{subtitle}</div>
+          </div>
+
+          <div
+            style={{
+              ...row,
+              flexWrap: 'wrap',
+              width: inner,
+              padding: platePad,
+              rowGap: 6,
+              columnGap: statGap,
+              backgroundColor: 'rgba(244,241,234,0.05)',
+              border: `1px solid ${hasArt ? 'rgba(244,241,234,0.10)' : COLOR.line3}`,
+            }}
+          >
+            {stats.map((s) => (
+              <div key={s.label} style={{ ...col, width: statW, gap: 2 }}>
+                <div
+                  style={{
+                    ...row,
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ ...mono(7, 1.0, COLOR.inkDim), textTransform: 'uppercase' }}>
+                    {s.label}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: FONT.sans,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      lineHeight: 1,
+                      color: COLOR.ink,
+                    }}
+                  >
+                    {shown(s.value)}
+                  </div>
+                </div>
+                <Bar value={s.value} edge={lvl.edge} height={2} />
+              </div>
+            ))}
+          </div>
+
+          <Caption text={input.caption} size={11} color={COLOR.inkSoft} />
+        </div>
+      </div>
+    );
+  }
+
   // wide — usado no og:image (1200×630) e no anexo do X (1600×900).
+  //
+  // 210–225px de altura de base não sobra espaço para o tratamento de sangria
+  // total do craque/poster do story — uma chapa com painel e grade 2 colunas
+  // não cabe sem estourar ou espremer o resto a ponto de virar ilegível. A
+  // arte fica como faixa lateral fixa nos dois casos; o que muda entre as
+  // molduras é só o bloco de eixos: no poster ele fica solto sobre a chapa,
+  // no ficha ganha uma caixa translúcida, com o valor de cada eixo à vista —
+  // pouca altura a mais, mas o suficiente para não ser o mesmo card duas vezes.
   const artW = Math.round(width * 0.315);
+  const isFicha = frame !== 'poster';
   return (
     <div
       style={{
@@ -669,12 +853,32 @@ export function CardArt(input: CardRenderInput): ReactElement {
           <div style={mono(9, 0.72, COLOR.muted2)}>{subtitle}</div>
           <Caption text={input.caption} size={12} color={COLOR.inkSoft} />
         </div>
-        <div style={{ ...row, marginTop: 'auto', gap: 6 }}>
+        <div
+          style={{
+            ...row,
+            marginTop: 'auto',
+            gap: 6,
+            ...(isFicha
+              ? {
+                  padding: '6px 8px',
+                  backgroundColor: 'rgba(244,241,234,0.05)',
+                  border: `1px solid ${COLOR.line3}`,
+                }
+              : {}),
+          }}
+        >
           {stats.map((s) => (
             <div key={s.label} style={{ ...col, flex: 1, gap: 3 }}>
               <Column value={s.value} edge={lvl.edge} height={22} />
-              <div style={{ ...mono(7, 0.35, COLOR.muted2), textTransform: 'uppercase' }}>
-                {abbreviate(s.label)}
+              <div style={{ ...row, justifyContent: 'space-between', gap: 4 }}>
+                <div style={{ ...mono(7, 0.35, COLOR.muted2), textTransform: 'uppercase' }}>
+                  {abbreviate(s.label)}
+                </div>
+                {isFicha ? (
+                  <div style={{ fontFamily: FONT.sans, fontWeight: 700, fontSize: 9, color: COLOR.ink }}>
+                    {shown(s.value)}
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}

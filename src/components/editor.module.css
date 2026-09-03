@@ -432,6 +432,29 @@
   cursor: progress;
 }
 
+.secondary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 16px;
+  letter-spacing: -0.01em;
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.secondary:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
 .footNote {
   font-family: var(--font-mono), monospace;
   font-size: 9px;

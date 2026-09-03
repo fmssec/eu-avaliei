@@ -212,48 +212,55 @@ export function Editor() {
   );
 
   /**
-   * Nada do card vai para o servidor. O que fica é o histórico, no aparelho de
-   * quem avaliou — e o evento agregado, para saber quantos cards viram
-   * compartilhamento de fato.
-   *
-   * A arte própria é guardada como Blob junto da avaliação: o link do upload
-   * é cache de sessão e expira, então salvar só a URL perderia a imagem.
+   * Evento agregado, para saber quantos cards chegam a ponto de compartilhar
+   * — não guarda nada pessoal. Guardar de fato é escolha explícita da pessoa,
+   * pelo botão SALVAR (abaixo): nem todo card chega a esse passo pensando em
+   * ficar no catálogo, e ficar salvando sozinho tira essa escolha de quem usa.
    */
   useEffect(() => {
     if (step !== 'share' || !media) return;
     track('created', null, shareFormat, media.category);
-
-    void (async () => {
-      const rating: SavedRating = {
-        id: idDaAvaliacao(media.externalId),
-        createdAt: new Date().toISOString(),
-        externalId: media.externalId,
-        title: media.title,
-        creator: media.creator,
-        year: media.year,
-        category: media.category,
-        overall,
-        scaleMax,
-        stats: stats.map((st) => ({ label: st.label, value: st.value })),
-        frame,
-        caption,
-        author,
-        artworkUrl: media.artworkUrl,
-      };
-
-      if (artworkUrl) {
-        try {
-          rating.artworkBlob = await (await fetch(artworkUrl)).blob();
-        } catch {
-          // Sem a imagem, a avaliação ainda vale a pena guardar.
-        }
-      }
-      await salvarAvaliacao(rating);
-      void contarAvaliacoes().then(setTotalAvaliacoes);
-    })();
-    // Salva o estado do momento em que a pessoa chegou ao compartilhamento.
+    // Só quando a pessoa chega ao passo, não a cada troca de formato depois.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, media]);
+
+  /**
+   * Guarda a avaliação em Minhas avaliações — só quando a pessoa pede.
+   *
+   * A arte própria é guardada como Blob junto da avaliação: o link do upload
+   * é cache de sessão e expira, então salvar só a URL perderia a imagem.
+   * `idDaAvaliacao` é o id externo da mídia, então salvar de novo sobrescreve
+   * o mesmo registro em vez de duplicar — clicar mais de uma vez é seguro.
+   */
+  const handleSalvar = useCallback(async () => {
+    if (!media) return;
+    const rating: SavedRating = {
+      id: idDaAvaliacao(media.externalId),
+      createdAt: new Date().toISOString(),
+      externalId: media.externalId,
+      title: media.title,
+      creator: media.creator,
+      year: media.year,
+      category: media.category,
+      overall,
+      scaleMax,
+      stats: stats.map((st) => ({ label: st.label, value: st.value })),
+      frame,
+      caption,
+      author,
+      artworkUrl: media.artworkUrl,
+    };
+
+    if (artworkUrl) {
+      try {
+        rating.artworkBlob = await (await fetch(artworkUrl)).blob();
+      } catch {
+        // Sem a imagem, a avaliação ainda vale a pena guardar.
+      }
+    }
+    await salvarAvaliacao(rating);
+    void contarAvaliacoes().then(setTotalAvaliacoes);
+  }, [media, overall, scaleMax, stats, frame, caption, author, artworkUrl]);
 
   /**
    * Reabre um item do catálogo para rever, ajustar ou compartilhar de novo.
@@ -438,6 +445,7 @@ export function Editor() {
           scaleMax={scaleMax}
           onBack={() => setStep('estilo')}
           onNotify={notify}
+          onSalvar={handleSalvar}
         />
       ) : null}
 

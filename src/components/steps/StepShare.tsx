@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FORMATS, FORMAT_IDS, type FormatId } from '@/lib/formats';
 import { formatScore, type ScaleMax } from '@/lib/scale';
 import {
@@ -28,6 +28,7 @@ interface Props {
   scaleMax: ScaleMax;
   onBack: () => void;
   onNotify: (message: string) => void;
+  onSalvar: () => Promise<void>;
 }
 
 const PREVIEW_CLASS: Record<FormatId, string> = {
@@ -50,10 +51,11 @@ function kb(bytes: number): string {
  * arquivo já foi gerado durante a edição. Se fosse gerado aqui, o iOS
  * invalidaria a ativação transitória e rejeitaria a chamada.
  *
- * O card não é salvo em lugar nenhum. Pelo caminho principal — a share sheet
- * com arquivo — isso não muda nada: a imagem viaja inteira. Pelos deep links,
- * que só aceitam texto, o que vai é o convite com o endereço do site, e a
- * imagem precisa ser anexada com "copiar" ou "baixar".
+ * Salvar em Minhas avaliações é uma escolha à parte de compartilhar — dá pra
+ * fazer as duas, só uma, ou nenhuma. Pelo caminho principal do compartilhamento
+ * — a share sheet com arquivo — isso não muda nada: a imagem viaja inteira.
+ * Pelos deep links, que só aceitam texto, o que vai é o convite com o
+ * endereço do site, e a imagem precisa ser anexada com "copiar" ou "baixar".
  */
 export function StepShare({
   media,
@@ -67,9 +69,11 @@ export function StepShare({
   scaleMax,
   onBack,
   onNotify,
+  onSalvar,
 }: Props) {
   const spec = FORMATS[format];
   const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  const [salvando, setSalvando] = useState(false);
 
   const shareText = useMemo(() => {
     const nota = formatScore(overall, scaleMax);
@@ -123,6 +127,14 @@ export function StepShare({
     track('shared', 'download', format, media.category);
   };
 
+  const handleSalvar = () => {
+    setSalvando(true);
+    void onSalvar()
+      .then(() => onNotify('SALVO EM MINHAS AVALIAÇÕES'))
+      .catch(() => onNotify('NÃO FOI POSSÍVEL SALVAR'))
+      .finally(() => setSalvando(false));
+  };
+
   const overBudget = prepared !== null && prepared.bytes > spec.maxBytes;
 
   return (
@@ -169,6 +181,15 @@ export function StepShare({
         </span>
       </div>
 
+      <button
+        type="button"
+        className={styles.secondary}
+        disabled={salvando}
+        onClick={handleSalvar}
+      >
+        {salvando ? 'SALVANDO…' : 'SALVAR EM MINHAS AVALIAÇÕES'}
+      </button>
+
       <button type="button" className={styles.primary} disabled={!prepared} onClick={handleShare}>
         {canNativeShare ? 'COMPARTILHAR IMAGEM' : 'COMPARTILHAR'}
       </button>
@@ -210,7 +231,8 @@ export function StepShare({
       </div>
 
       <div className={`${styles.footNote} ${styles.spacer}`}>
-        O CARD NÃO FICA GUARDADO — A IMAGEM QUE VOCÊ BAIXOU É A SUA CÓPIA
+        SEM SALVAR, O CARD NÃO FICA GUARDADO EM LUGAR NENHUM — SÓ A IMAGEM QUE
+        VOCÊ BAIXOU OU COMPARTILHOU
       </div>
     </section>
   );
