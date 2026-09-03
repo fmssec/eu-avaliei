@@ -1,0 +1,231 @@
+/* Página do catálogo: grade de cards renderizados de verdade, com filtro e
+   ordenação. Reaproveita os primitivos visuais do editor (botão, segmentado,
+   toast) e define aqui só o que é específico de uma grade. */
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 20px calc(48px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100dvh;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--gold);
+}
+
+.voltar {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  text-decoration: none;
+}
+
+.voltar:hover {
+  color: var(--ink);
+}
+
+.resumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.total {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted-3);
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  border: 1px solid var(--line-3);
+  background: transparent;
+  padding: 7px 10px;
+}
+
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--muted-4);
+}
+
+.chipOn {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ordenar {
+  display: flex;
+  gap: 6px;
+  flex: none;
+  width: auto;
+}
+
+/**
+ * Combinada com editorStyles.segment no mesmo elemento (não um seletor
+ * alcançando outro módulo — classes CSS Modules são hasheadas por arquivo,
+ * então `:global(.segment)` aqui não bateria com a classe do outro módulo).
+ */
+.ordenarBtn {
+  flex: none;
+  padding: 7px 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 18px;
+  }
+}
+
+.tile {
+  position: relative;
+}
+
+.tileOpen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.tileOpen:hover,
+.tileOpen:focus-visible {
+  border-color: var(--muted-4);
+}
+
+.tileImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileSkeleton {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface) 0 8px,
+    var(--surface-2) 8px 16px
+  );
+}
+
+.tileRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink);
+  background: rgba(8, 8, 10, 0.72);
+  border: 1px solid rgba(244, 241, 234, 0.25);
+}
+
+.tileRemove:hover {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  padding-top: 8px;
+}
+
+.vazioTexto {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  font-weight: 500;
+  margin: 0;
+  max-width: 46ch;
+}
+
+.vazioCta {
+  display: inline-block;
+  text-decoration: none;
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  color: var(--bg);
+  background: var(--ink);
+  padding: 16px 22px;
+}
+
+.vazioCta:hover {
+  background: var(--gold);
+}
+
+.acoes {
+  display: flex;
+  gap: 6px;
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.acaoBtn {
+  flex: 1;
+}
+
+.rodape {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted-5);
+  text-align: center;
+  line-height: 1.7;
+}

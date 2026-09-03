@@ -18,7 +18,13 @@ import { slugify } from '@/lib/slugify';
 import { useCardBlob, useDebounced } from '@/lib/client/useCardBlob';
 import { displayWidthFor, useDevicePixelRatio } from '@/lib/client/display';
 import { track } from '@/lib/share';
-import { idDaAvaliacao, salvarAvaliacao, type SavedRating } from '@/lib/client/history';
+import {
+  buscarAvaliacao,
+  idDaAvaliacao,
+  salvarAvaliacao,
+  type SavedRating,
+} from '@/lib/client/history';
+import { resolveCatalogArtwork } from '@/lib/client/artworkCache';
 import type { FrameId, Media, OverallMode } from '@/lib/types';
 import styles from './editor.module.css';
 import { StepBusca } from './steps/StepBusca';
@@ -242,8 +248,15 @@ export function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, media]);
 
-  /** Reabre um item do catálogo para rever, ajustar ou compartilhar de novo. */
-  const abrirDoCatalogo = useCallback((r: SavedRating) => {
+  /**
+   * Reabre um item do catálogo para rever, ajustar ou compartilhar de novo.
+   *
+   * Com arte própria, o Blob guardado precisa primeiro virar uma URL que o
+   * servidor consiga buscar — ele não enxerga `blob:`, que só existe dentro
+   * desta aba. Enquanto o reenvio não termina, o card já abre com o resto do
+   * estado preenchido; a arte chega meio segundo depois.
+   */
+  const abrirDoCatalogo = useCallback(async (r: SavedRating) => {
     setMedia({
       id: r.externalId,
       source: 'mock',
@@ -261,11 +274,32 @@ export function Editor() {
     setFrame(r.frame);
     setCaption(r.caption);
     setAuthor(r.author);
-    // A arte própria volta como URL de objeto: ela vive no aparelho, não no
-    // servidor, então não há link de upload para reusar.
-    setArtworkUrl(r.artworkBlob ? URL.createObjectURL(r.artworkBlob) : null);
+    setArtworkUrl(r.artworkBlob ? null : r.artworkUrl);
     setMode('manual');
     setStep('estilo');
+
+    if (r.artworkBlob) {
+      const url = await resolveCatalogArtwork(r);
+      setArtworkUrl(url);
+    }
+  }, []);
+
+  /**
+   * Abre direto num item do catálogo quando a URL chega com `?abrir=<id>` —
+   * é assim que a página /catalogo manda alguém de volta para o editor.
+   *
+   * Lido do `window.location` puro, e não do hook `useSearchParams` do Next:
+   * o hook exigiria envolver a página numa Suspense boundary só para este
+   * caso raro, e a leitura direta roda de qualquer forma só depois de montar.
+   */
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('abrir');
+    if (!id) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    void buscarAvaliacao(id).then((r) => {
+      if (r) void abrirDoCatalogo(r);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const level = levelFor(overall);
@@ -327,7 +361,7 @@ export function Editor() {
 
         <div className={styles.controls}>
           {step === 'busca' ? (
-            <StepBusca onPick={pickMedia} onDemo={startDemo} onAbrirCatalogo={abrirDoCatalogo} onNotify={notify} />
+            <StepBusca onPick={pickMedia} onDemo={startDemo} />
           ) : null}
 
           {step === 'nota' && media ? (

@@ -1,7 +1,27 @@
 import { NextResponse } from 'next/server';
-import { isUploadId, readUpload } from '@/lib/uploads';
+import { isUploadId, readUpload, uploadExists } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
+
+/**
+ * Confirma se um upload ainda está no ar, sem baixar os bytes.
+ *
+ * É o que permite ao cliente reaproveitar um link antigo com segurança: ele
+ * guarda a URL e a data do envio, mas /tmp é efêmero e some inteiro num
+ * reinício do servidor — sem esta checagem, o cliente confiaria no relógio
+ * por até 6h e mostraria cards sem foto até o cache expirar sozinho.
+ */
+export async function HEAD(
+  _request: Request,
+  { params }: { params: Promise<{ file: string }> },
+) {
+  const { file } = await params;
+  const id = file.replace(/\.jpg$/, '');
+  if (!isUploadId(id) || !(await uploadExists(id))) {
+    return new NextResponse(null, { status: 404 });
+  }
+  return new NextResponse(null, { status: 200 });
+}
 
 /**
  * Serve a arte enviada pelo usuário.

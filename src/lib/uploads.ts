@@ -131,3 +131,21 @@ export async function readUpload(id: string): Promise<Buffer | null> {
     return null;
   }
 }
+
+/**
+ * Só confirma presença, sem carregar os bytes — para o cliente checar se um
+ * upload antigo ainda está no ar antes de decidir reenviá-lo.
+ *
+ * Existe porque o cache é em /tmp: sobrevive a horas de uso normal, mas some
+ * inteiro se o processo reiniciar (deploy, crash, escala). Um cliente que
+ * confiasse só no relógio para saber se o link ainda vale ficaria até 6h
+ * mostrando cards sem a foto depois de qualquer reinício do servidor.
+ */
+export async function uploadExists(id: string): Promise<boolean> {
+  try {
+    const info = await stat(uploadPath(id));
+    return Date.now() - info.mtimeMs <= TTL_MS;
+  } catch {
+    return false;
+  }
+}

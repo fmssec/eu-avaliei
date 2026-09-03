@@ -4,14 +4,14 @@ import type { Category, FrameId } from '../types';
 import type { ScaleMax } from '../scale';
 
 /**
- * Histórico de avaliações, no aparelho de quem avaliou.
+ * Catálogo de avaliações, no aparelho de quem avaliou.
  *
  * Guardar no navegador — e não no servidor — é o que mantém a promessa de não
  * ter login sem exigir identidade nenhuma: não há conta, não há token, não há
  * nada nosso para vazar, e a hospedagem continua sem estado.
  *
  * O preço é honesto e precisa ser dito na interface: trocar de aparelho ou
- * limpar o navegador apaga o histórico. Por isso existe exportar/importar.
+ * limpar o navegador apaga o catálogo. Por isso existe exportar/importar.
  *
  * IndexedDB, e não localStorage, por causa da imagem própria: quando alguém
  * anexa a própria arte, ela é guardada como Blob junto da avaliação. Em
@@ -42,6 +42,13 @@ export interface SavedRating {
   artworkUrl: string | null;
   /** Arte própria, guardada inteira: o upload no servidor expira. */
   artworkBlob?: Blob;
+  /**
+   * Última URL de servidor conhecida para a arte própria, e quando foi obtida.
+   * O upload no servidor é cache de sessão (TTL de 6h) — sem isto, toda
+   * exibição de um card com foto própria precisaria reenviar o Blob antes de
+   * poder renderizar. Com isto, só reenvia quando o cache pode ter expirado.
+   */
+  artworkUploadedAt?: string;
 }
 
 function abrir(): Promise<IDBDatabase> {
@@ -79,7 +86,7 @@ async function comStore<T>(
 /**
  * O IndexedDB pode simplesmente não existir: janela privada em alguns
  * navegadores, armazenamento bloqueado, cota esgotada. Nenhuma dessas
- * situações pode impedir alguém de fazer e compartilhar um card — o histórico
+ * situações pode impedir alguém de fazer e compartilhar um card — o catálogo
  * é conveniência, não requisito.
  */
 export function historicoDisponivel(): boolean {
@@ -91,7 +98,20 @@ export async function salvarAvaliacao(rating: SavedRating): Promise<void> {
   try {
     await comStore('readwrite', (store) => store.put(rating));
   } catch {
-    // Cota estourada ou storage bloqueado: seguir sem histórico.
+    // Cota estourada ou storage bloqueado: seguir sem catálogo.
+  }
+}
+
+/**
+ * Só a contagem, sem carregar os registros inteiros — usada para decidir se
+ * mostra o link do catálogo na tela inicial, sem custo de ler tudo.
+ */
+export async function contarAvaliacoes(): Promise<number> {
+  if (!historicoDisponivel()) return 0;
+  try {
+    return await comStore<number>('readonly', (store) => store.count());
+  } catch {
+    return 0;
   }
 }
 
@@ -103,6 +123,16 @@ export async function listarAvaliacoes(): Promise<SavedRating[]> {
     return todas.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } catch {
     return [];
+  }
+}
+
+export async function buscarAvaliacao(id: string): Promise<SavedRating | null> {
+  if (!historicoDisponivel()) return null;
+  try {
+    const r = await comStore<SavedRating | undefined>('readonly', (store) => store.get(id));
+    return r ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -125,6 +155,24 @@ export async function limparHistorico(): Promise<void> {
 }
 
 /**
+ * Grava a URL de servidor mais recente da arte própria, depois de um reenvio.
+ * Falha em silêncio: não achar a arte de novo mais tarde só custa outro
+ * reenvio, não perde nada.
+ */
+export async function atualizarArtworkUrl(id: string, url: string): Promise<void> {
+  if (!historicoDisponivel()) return;
+  try {
+    const atual = await buscarAvaliacao(id);
+    if (!atual) return;
+    await comStore('readwrite', (store) =>
+      store.put({ ...atual, artworkUrl: url, artworkUploadedAt: new Date().toISOString() }),
+    );
+  } catch {
+    // ignora
+  }
+}
+
+/**
  * Identidade da avaliação: a mesma mídia avaliada de novo substitui a anterior
  * em vez de duplicar. Quem reavalia um filme está corrigindo a nota, não
  * criando um segundo registro.
@@ -133,7 +181,7 @@ export function idDaAvaliacao(externalId: string): string {
   return externalId;
 }
 
-/** Exportar e importar existem porque o histórico mora só neste aparelho. */
+/** Exportar e importar existem porque o catálogo mora só neste aparelho. */
 export async function exportarHistorico(): Promise<Blob> {
   const avaliacoes = await listarAvaliacoes();
   // Blob não sobrevive a JSON: a arte própria vira base64 na exportação.

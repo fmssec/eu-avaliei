@@ -13,8 +13,7 @@ import {
 } from '@/lib/media/demo';
 import type { Media } from '@/lib/types';
 import { CATEGORY_LABEL } from '@/lib/categories';
-import { Catalogo } from '../Catalogo';
-import type { SavedRating } from '@/lib/client/history';
+import { contarAvaliacoes } from '@/lib/client/history';
 import styles from '../editor.module.css';
 
 /** O que cada passo faz, em uma linha. Explica o produto sem exigir leitura. */
@@ -34,23 +33,28 @@ const COMO_FUNCIONA = [
  * Ele é renderizado pelo renderizador de verdade, com os mesmos parâmetros de
  * um card real — então nunca fica desatualizado em relação ao produto, e a
  * pergunta "o que esse site faz?" se responde sem precisar buscar nada.
+ *
+ * O catálogo mora numa página própria (`/catalogo`): aqui só um link, e só
+ * quando existe pelo menos um item — sem isso seria um link morto para quem
+ * está usando o site pela primeira vez.
  */
 export function StepBusca({
   onPick,
   onDemo,
-  onAbrirCatalogo,
-  onNotify,
 }: {
   onPick: (media: Media) => void;
   onDemo: () => void;
-  onAbrirCatalogo: (rating: SavedRating) => void;
-  onNotify: (message: string) => void;
 }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Media[]>([]);
   const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [totalCatalogo, setTotalCatalogo] = useState(0);
   const settled = useDebounced(query.trim(), 300);
   const dpr = useDevicePixelRatio();
+
+  useEffect(() => {
+    void contarAvaliacoes().then(setTotalCatalogo);
+  }, []);
 
   const demoQuery = useMemo(
     () =>
@@ -105,7 +109,14 @@ export function StepBusca({
 
   return (
     <section className={styles.step}>
-      <div className={styles.stepLabel}>1 · BUSCA</div>
+      <div className={styles.stepHead}>
+        <span className={styles.stepLabel}>1 · BUSCA</span>
+        {totalCatalogo > 0 ? (
+          <a className={styles.catalogoLink} href="/catalogo">
+            MEU CATÁLOGO · {totalCatalogo}
+          </a>
+        ) : null}
+      </div>
 
       <div className={styles.field}>
         <input
@@ -182,8 +193,6 @@ export function StepBusca({
             MEXER NESTE EXEMPLO
           </button>
           <div className={styles.footNote}>OU BUSQUE UM TÍTULO ACIMA</div>
-
-          <Catalogo onAbrir={onAbrirCatalogo} onNotify={onNotify} />
         </div>
       )}
     </section>

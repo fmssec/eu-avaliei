@@ -824,127 +824,6 @@
 }
 
 
-/* ---- Catálogo ----------------------------------------------------------
- * O que a pessoa já consumiu e avaliou, neste aparelho. Fica na tela inicial
- * porque é onde ela chega quando volta — guardar só vale se der para rever.
- */
-
-.catalogo {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 18px;
-  margin-top: 4px;
-  border-top: 1px solid var(--line);
-}
-
-.catalogoFiltros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.catalogoChip {
-  font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--muted-2);
-  border: 1px solid var(--line-3);
-  background: transparent;
-  padding: 7px 10px;
-}
-
-.catalogoChip:hover {
-  color: var(--ink);
-  border-color: var(--muted-4);
-}
-
-.catalogoChipOn {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
-}
-
-.catalogoLista {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.catalogoItem {
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.catalogoAbrir {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  padding: 9px 11px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  text-align: left;
-}
-
-.catalogoAbrir:hover,
-.catalogoAbrir:focus-visible {
-  border-color: var(--muted-4);
-}
-
-.catalogoNota {
-  font-family: var(--font-display), sans-serif;
-  font-size: 21px;
-  letter-spacing: -0.03em;
-  width: 46px;
-  flex: none;
-  font-variant-numeric: tabular-nums;
-}
-
-.catalogoTitulo {
-  font-weight: 600;
-  font-size: 17px;
-  line-height: 1.1;
-  text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.catalogoApagar {
-  flex: none;
-  width: 34px;
-  font-size: 20px;
-  line-height: 1;
-  color: var(--muted-3);
-  border: 1px solid var(--line);
-  background: var(--surface);
-}
-
-.catalogoApagar:hover {
-  color: var(--warn);
-  border-color: var(--warn);
-}
-
-.catalogoAcoes {
-  display: flex;
-  gap: 6px;
-}
-
-.catalogoAcoes .artButton {
-  flex: 1;
-}
-
-@media (min-width: 960px) {
-  .catalogoLista {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-}
-
 .footerLink {
   color: var(--muted-4);
   text-decoration: none;
@@ -952,4 +831,16 @@
 
 .footerLink:hover {
   color: var(--gold);
+}
+
+.catalogoLink {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.catalogoLink:hover {
+  color: var(--ink);
 }

@@ -70,7 +70,7 @@ Confere peso de cada formato contra o teto do destino, ordem das meta tags no `<
 - **Moldura pela nota**: cinco faixas de raridade, de Comum a Especial.
 - **Arte própria**: anexar arquivo ou colar link no lugar da capa da base.
 - **Quatro formatos**: Story 1080×1920, quadrado 1080×1080, preview de link 1200×630, X 1600×900.
-- **Catálogo pessoal no aparelho**, com filtro por categoria, ordenação por nota e exportar/importar.
+- **Catálogo pessoal em página própria** (`/catalogo`): grade com os cards de verdade, não uma lista de texto — filtro por categoria, ordenação por nota, exportar/importar.
 - **Tema claro e escuro**, mais o modo que segue o sistema.
 
 ---
@@ -85,7 +85,9 @@ O preview do editor **é** esse renderizador: a `<img>` aponta para `/api/previe
 
 ### Nada é guardado no servidor
 
-O card existe durante a criação e vira a imagem que você leva. O que fica depois é o seu catálogo — título, nota, eixos e a arte, no **IndexedDB do seu navegador**, com filtro por categoria e ordenação por nota.
+O card existe durante a criação e vira a imagem que você leva. O que fica depois é o seu catálogo — título, nota, eixos e a arte, no **IndexedDB do seu navegador**.
+
+A arte própria é o caso delicado: o Blob mora no aparelho, mas o card é sempre renderizado no servidor, que não enxerga `blob:`. Cada item com foto própria a reenvia para `/api/uploads` antes de aparecer — e como esse cache é `/tmp` (efêmero, sobrevive a um reinício do servidor por só algumas horas), a URL guardada é conferida com um HEAD antes de ser reaproveitada; se o servidor tiver reiniciado nesse meio-tempo, reenvia de novo em vez de mostrar o card sem foto até o cache local expirar sozinho.
 
 Consequência: o link de compartilhamento aponta para o site, não para uma página por card. Pelo caminho principal — a share sheet do celular — a imagem viaja como arquivo e chega inteira. Pelos deep links de desktop, que só aceitam texto, a imagem é anexada à mão com os botões de copiar ou baixar.
 
@@ -151,8 +153,10 @@ src/lib/render/index.ts    satori → resvg → sharp
 src/lib/media/             busca federada e ranqueamento por relevância
 src/lib/share.ts           a cascata de compartilhamento
 src/lib/net/safe-fetch.ts  busca de URL do usuário, protegida contra SSRF
-src/lib/client/history.ts  catálogo pessoal no IndexedDB
-src/lib/categories.ts      rótulos de categoria compartilhados
+src/lib/client/history.ts       catálogo pessoal no IndexedDB
+src/lib/client/artworkCache.ts   arte própria: reenvio ao servidor com checagem de validade
+src/lib/categories.ts           rótulos de categoria compartilhados
+src/app/catalogo/                página do catálogo — grade, filtro, ordenação
 src/app/api/               preview, busca, uploads, eventos, proxy de arte
 ```
 
